@@ -1,27 +1,44 @@
 var api = "https://spapi.dev/api/";
+var resource = {
+  episodes: "episodes/",
+  locations: "locations/",
+  families: "families/",
+  characters: "characters/"
+}
 var num = 1;
-var episodes = "episodes/";
-var locations = "locations/";
-var families = "families/";
-var characters = "characters/";
 
-var curEpisode;
-
-var curData;
-
+var gerald = {
+  id: null,
+  name: null,
+  age: null,
+  sex: null,
+  occupation: null,
+  religion: null,
+  family: null,
+}
 
 function preload() {
-  curEpisode = episodes + num;
-  curData = loadJSON(api+curEpisode);
- 
+  loadJSON(api + resource.characters + num,loadCharacter)
 }
 
 function setup() {
-  createCanvas(400, 400); 
-  console.log(curData.data.name);
-} 
+  createCanvas(400, 400);
+  printCharacter(gerald);
+}
 
-function draw() {
-  fill(200,200,200);
-  rect(100,100,100,100);
+function loadCharacter(json) {
+  var keyArr = Object.keys(gerald);
+  for (var i = 0; i < keyArr.length; i++) {
+    gerald[keyArr[i]] = json.data[keyArr[i]];
+  }
+}
+
+function printCharacter() {
+  var keyArr = Object.keys(gerald);
+  var valueArr = Object.values(gerald);
+
+  console.log("Here are Gerald's traits");
+  for (var i = 0; i < keyArr.length; i++) {
+    console.log(keyArr[i] + ": " + valueArr[i]);
+  }
 }
