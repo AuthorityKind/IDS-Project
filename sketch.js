@@ -3,17 +3,13 @@ var resource = {
   episodes: "episodes/",
   locations: "locations/",
   families: "families/",
-  characters: "characters/"
-}
+  characters: "characters/",
+};
 var num = 1;
 
-var lmao = 0;
-
-var Characters = {
-  //gerald: Object
-}
-
-//var names;
+var total = 0;
+var test;
+var characters = {};
 
 var characterPreset = {
   id: null,
@@ -23,21 +19,20 @@ var characterPreset = {
   occupation: null,
   religion: null,
   family: null,
-}
+};
+
+var names = [];
 
 function preload() {
-
-  loadJSON(api + "characters", loadTotal);
-  //loadJSON(api + resource.characters + num, loadCharacter)
+  loadJSON(api + "characters/", loadData);
 }
 
 function setup() {
-  createCanvas(400, 400);
-  console.log(lmao);
-  //initializeCharacter();
-  //printCharacter(Characters.gerald);
+  //createCanvas(400, 400);
+  //console.log(test);
+  console.log(names);
 }
-
+/*
 function loadCharacter(json) {
   var keyArr = Object.keys(Characters.gerald);
   for (var i = 0; i < keyArr.length; i++) {
@@ -54,25 +49,23 @@ function printCharacter() {
     console.log(keyArr[i] + ": " + valueArr[i]);
   }
 }
-
-//needs to be paramitized
 function initializeCharacter() {
   Characters.gerald = characterPreset;
 }
+*/
 
-function loadTotal(json) {
-  var total = "total";
+function loadData(json) {
+  total = Number(json.meta["total"]);
+  names = new Array(total);
+  test = json.data[0]["name"];
 
-  lmao = Number(json.meta[total]);
+  for (var i = 0; i < Number(json.meta["last_page"]); i++) {
+    loadJSON(api + "characters?page=" + i++,loadDataCluster)
+  }
+}
 
-
-
-  //console.log(lmao);
-  // var names = new Array(json.length);
-
-  // for(var i = 0; i < names.length; i++){
-  //   names[i] = json[i].data.name;
-
-  //   console.log(names[i]);
-  // }
+function loadDataCluster(json) {
+  for (var i = 0; i < Number(json.meta["per_page"]); i++) {
+    names[i + (Number(json.meta["from"]) - 1)] = json.data[i]["name"];
+  }
 }
