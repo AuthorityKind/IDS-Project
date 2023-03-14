@@ -2,6 +2,7 @@
 var buttons = [];
 
 var currentResource = "";
+var currentNumber = 0;
 
 
 // api stuff 
@@ -15,7 +16,7 @@ var resource = {
 
 // character array, as well as current character object
 var characterArray = [];
-var curCharacter = {};
+var curCharacter = null;
 
 // reset object
 function resetCharacter() {
@@ -29,27 +30,26 @@ function resetCharacter() {
   family: null}
 }
 
-function preload() {
-  resetCharacter(); // initialize character object variables
-  for (i = 1; i <= 10; i++) { 
-      loadJSON(api + resource.characters + i, loadCharacter);
-  }
-}
 
 
+var names = ["Characters", "Families", "Locations", "Episodes"]
 function setup() {
-    createCanvas(400, 400);
-    // the buttons for the "overheads" maybe loops to make the rest?
-    buttons.push(new Btn(10,10,70,25, "Characters"));
-    buttons.push(new Btn(90,10,70,25, "Families"));
-    buttons.push(new Btn(170,10,70,25, "Locations"));
-    buttons.push(new Btn(250,10,70,25, "Episodes"));
-
+    createCanvas(600, 600);
     
-    for (var i = 0; i < characterArray.length; i++) {
-      printCharacter(characterArray[i]);
+
+
+    for (i = 0; i < names.length; i++) {
+    buttons.push(new Btn(60 + (i*75),10,70,25, names[i]));
+
     }
-    console.log(characterArray);
+
+    buttons.push(new Btn(60 + (i*75),10,70,25, "Clear"));
+
+
+    for (i = 1; i <= 6; i++) {
+      buttons.push(new Btn(110 + (i*30),50,20,20, i));
+    }
+
   }
   
   // for the buttons
@@ -60,17 +60,42 @@ function setup() {
       buttons[i].drawButton();
     }
 
+    drawTraits();
+
+
+
+  }
+  function drawTraits() {
+    fill(255,160,90);
+    rect(100,100, 400, 400);
+    textSize(20);
+    fill(0);
+    text("Traits: " + currentResource, 200, 120);
+    if (curCharacter != null) {
+
+
+      var counter = 0;
+      for (let key in curCharacter) {
+
+        if (curCharacter[key] != null && curCharacter[key].length < 30) {
+          text(key + ":", 120, 100 + (70 + (counter * 40)));
+          text(curCharacter[key], 250, 100 + (70 + (counter * 40)));
+          counter++;
+        }
+      }
+    }
   }
 
 
   // load the character and insert the object into the array
   function loadCharacter(json) {
+    resetCharacter();
     var keyArr = Object.keys(curCharacter);
+
     for (var i = 0; i < keyArr.length; i++) {
       curCharacter[keyArr[i]] = json.data[keyArr[i]];
     }
     append(characterArray, curCharacter);
-    resetCharacter();
   }
   
 
@@ -80,15 +105,31 @@ function setup() {
       console.log(character);
   }
 
-
   // setters and getters for resourceitem
   function setResourceItem(item) {
+    if (item.toLowerCase() != currentResource){
       currentResource = item.toLowerCase();
+      currentNumber = 0;
+      console.log(api + currentResource + '/');
+    }
+  }
+
+  function setResourceNumber(number) {
+    if (currentNumber != number){
+      currentNumber = number;
+      console.log(api + currentResource + '/' + currentNumber);
+      var url = api + currentResource + '/' + currentNumber;
+      loadJSON(url, gotData);
+    }
+  }
+
+  function gotData(data) {
+    dataFromURL = data;
+    curCharacter = dataFromURL.data;
   }
 
   function getResourceItem() {
-    console.log(api + currentResource + '/' + "1");
-    return api + currentResource + '/' + "1";
+    return api + currentResource + '/' + currentNumber;
   }
 
 
@@ -120,8 +161,15 @@ function setup() {
           this.changeState();
         }
         this.isPressed = true;
-        setResourceItem(this.buttonText);
-        getResourceItem();
+
+        if (this.buttonText.length > 5) {
+          setResourceItem(this.buttonText);
+        } else if (this.buttonText == "Clear"){
+          curCharacter = null;
+          currentResource = null;
+        } else {
+          setResourceNumber(this.buttonText);
+        }
 
       } 
       if (!this.inRange || !mouseIsPressed) {
