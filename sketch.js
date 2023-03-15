@@ -35,6 +35,7 @@ function preload() {
 function setup() {
   createCanvas(600, 600);
   //console.log(test);
+  var i = 0;
   buttonArray.push(new Btn(60 + (i * 75), 10, 70, 25, resourceNames[i]));
 
   //buttonArray.push(new Btn(60 + (i*75),10,70,25, "Clear"));
