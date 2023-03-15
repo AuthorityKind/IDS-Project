@@ -1,4 +1,4 @@
-// alt herfra er fra et tidligere ids kursus, lidt adjusted
+// we made a button, adjustments coming later 
 class Btn{
   
     constructor (x, y, width, height, buttonText) {
