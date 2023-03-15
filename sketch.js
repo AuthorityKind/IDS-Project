@@ -7,6 +7,9 @@ var resource = {
 };
 var num = 1;
 
+var buttonArray = [];
+
+
 var total = 0;
 var test;
 var characters = {};
@@ -22,16 +25,48 @@ var characterPreset = {
 };
 
 var names = [];
+var resourceNames = ["Characters", "Families", "Locations", "Episodes"];
+var currentResource = toString();
 
 function preload() {
-  loadJSON(api + "characters/", loadData);
+  var url = api + "characters/";
+  loadJSON(url, loadData);
 }
 
 function setup() {
-  //createCanvas(400, 400);
+  createCanvas(600, 600);
   //console.log(test);
-  console.log(names);
+  for (i = 0; i < resourceNames.length; i++) {
+    buttonArray.push(new Btn(60 + (i*75),10,70,25, resourceNames[i]));
+    }
+
+    buttonArray.push(new Btn(60 + (i*75),10,70,25, "Clear"));
+    console.log(names);
+    print(charactersFromJSON);
+
 }
+
+function draw() {
+  background(220);
+  
+  for (i = 0; i < buttonArray.length; i++) {
+    buttonArray[i].drawButton();
+    if (buttonArray[i].isOn) {
+      currentResource = buttonArray[i].buttonText;
+    }
+    
+  }
+  drawTraits();
+}
+
+function drawTraits() {
+  fill(255,160,90);
+  rect(100,100, 400, 400);
+  textSize(20);
+  fill(0);
+  text("Traits: " , 200, 120);
+}
+
 /*
 function loadCharacter(json) {
   var keyArr = Object.keys(Characters.gerald);
@@ -53,19 +88,18 @@ function initializeCharacter() {
   Characters.gerald = characterPreset;
 }
 */
-
+var charactersFromJSON = [];
 function loadData(json) {
   total = Number(json.meta["total"]);
   names = new Array(total);
-  test = json.data[0]["name"];
-
-  for (var i = 0; i < Number(json.meta["last_page"]); i++) {
-    loadJSON(api + "characters?page=" + i++,loadDataCluster)
+  for (var i = 1; i < Number(json.meta["last_page"] - 1); i++) {
+    loadJSON(api + "characters?page=" + i,loadDataCluster);
   }
 }
 
 function loadDataCluster(json) {
   for (var i = 0; i < Number(json.meta["per_page"]); i++) {
+    charactersFromJSON[charactersFromJSON.length] = json.data;
     names[i + (Number(json.meta["from"]) - 1)] = json.data[i]["name"];
   }
 }
