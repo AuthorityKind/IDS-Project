@@ -3,8 +3,8 @@ let classifier;
 const options = { probabilityThreshold: 0.75 };
 let label;
 let confidence;
-
-let wordArray;
+let currentScreen = "Start";
+let word;
 
 // api variables
 
@@ -17,7 +17,13 @@ var resource = {
 };
 
 // button array
-var buttonArray = [];
+var buttonArrayStart = [];
+var buttonArrayStartpage = [];
+
+var buttonArrayCharacters = [];
+var buttonArrayEpisodes = [];
+var buttonArrayFamilies = [];
+var buttonArrayLocations = [];
 
 
 // variable for total amount of south park(sp) characters that the api has
@@ -46,7 +52,14 @@ function setup() {
   confidence = createDiv('Confidence: ...'); // taken from example
   classifier.classify(gotResult); // taken from example
   var i = 0;
-  buttonArray.push(new Btn(60 + (i * 75), 10, 70, 25, resourceNames[i]));
+
+  buttonArrayStart.push(new Btn(60 + (i * 75), 10, 70, 25, resourceNames[i]));
+  buttonArrayStartpage.push(new Btn(250, 150 + (i++*75), 100, 40, "Characters"));
+  buttonArrayStartpage.push(new Btn(250, 150 + (i++*75), 100, 40, "Episodes"));
+  buttonArrayStartpage.push(new Btn(250, 150 + (i++*75), 100, 40, "Families"));
+  buttonArrayStartpage.push(new Btn(250, 150 + (i*75), 100, 40, "Locations"));
+
+  
 
   //buttonArray.push(new Btn(60 + (i*75),10,70,25, "Clear"));
   console.log(names); // print all the names array
@@ -56,11 +69,25 @@ function setup() {
 // counter is to check if a character has already been selected
 var counter = 0;
 function draw() {
-  background(220);
+  switch (currentScreen) {
+    case "Start":
+      startPage();
+      break;
+  
+    case "data_page":
+      drawTraits();
+      break;
 
-  for (i = 0; i < buttonArray.length; i++) {
-    buttonArray[i].drawButton();
-    if (buttonArray[i].isOn && counter == 0) {
+    default:
+      print("koko");
+      break;
+  }
+}
+
+function drawTraits() {
+  for (i = 0; i < buttonArrayStart.length; i++) {
+    buttonArrayStart[i].drawButton();
+    if (buttonArrayStart[i].isOn && counter == 0) {
 
       counter++;
       currentResource = charactersFromJSON[int(random(1, charactersFromJSON.length - 1))];
@@ -71,15 +98,13 @@ function draw() {
 
       print(currentResource);
 
-    } else if (!buttonArray[i].isOn) {
+    } else if (!buttonArrayStart[i].isOn) {
       counter = 0; // reset button
     }
+    
   }
-  drawTraits();
-}
 
-function drawTraits() {
-  if (wordArray == "up") {
+  if (word == "up") {
     fill(255, 160, 90);
   } else {
     fill(100,255,167);
@@ -101,27 +126,15 @@ function drawTraits() {
   }
 }
 
-/* old stuff ;)
-function loadCharacter(json) {
-  var keyArr = Object.keys(Characters.gerald);
-  for (var i = 0; i < keyArr.length; i++) {
-    Characters.gerald[keyArr[i]] = json.data[keyArr[i]];
+function startPage() {
+  background(200);
+  fill(100);
+  textSize(32);
+  text("hello welcome to our program.\n You use your voice to navigate here...", 10, 100);
+  for (let i = 0; i < buttonArrayStartpage.length; i++) {
+    buttonArrayStartpage[i].drawButton();
   }
 }
-
-function printCharacter() {
-  var keyArr = Object.keys(Characters.gerald);
-  var valueArr = Object.values(Characters.gerald);
-
-  console.log("Here are Gerald's traits");
-  for (var i = 0; i < keyArr.length; i++) {
-    console.log(keyArr[i] + ": " + valueArr[i]);
-  }
-}
-function initializeCharacter() {
-  Characters.gerald = characterPreset;
-}
-*/
 
 
 var charactersFromJSON = []; // array to store the character objects
@@ -146,9 +159,6 @@ function loadDataCluster(json) {
   }
 }
 
-
-
-
 // A function to run when we get any errors and the results
 function gotResult(error, results) { // from example
   // Display error in the console
@@ -159,6 +169,8 @@ function gotResult(error, results) { // from example
   console.log(results);
   // Show the first label and confidence
   label.html('Label: ' + results[0].label);
-  wordArray = results[0].label;
+  word = results[0].label;
   confidence.html('Confidence: ' + nf(results[0].confidence, 0, 2)); // Round the confidence to 0.01
 }
+
+

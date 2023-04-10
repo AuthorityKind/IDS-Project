@@ -33,7 +33,7 @@ class Btn{
       if (this.isPressed){
           this.drawButtonPressed();
       } else {
-        fill(200,200,200);
+        fill(150, 150, 100);
         rect(this.x,this.y,this.width,this.height);
       }
       textSize(12);
