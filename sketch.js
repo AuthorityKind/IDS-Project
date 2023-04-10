@@ -5,8 +5,10 @@ const options = { probabilityThreshold: 0.75 };
 let label;
 let confidence;
 let currentScreen = "Start";
+
 let word;
 let arrowPosition = 0;
+let wordCount = 0;
 
 // api variables
 
@@ -47,7 +49,8 @@ function preload() {
   loadJSON(url, loadData); // load the data
 }
 
-
+let upButton;
+let downButton;
 function setup() {
   createCanvas(600, 600);
   label = createDiv('Label: ...'); // taken from example
@@ -59,7 +62,12 @@ function setup() {
   buttonArrayStartpage.push(new Btn(250, 150 + (i++*75), 100, 40, "Characters"));
   buttonArrayStartpage.push(new Btn(250, 150 + (i++*75), 100, 40, "Episodes"));
   buttonArrayStartpage.push(new Btn(250, 150 + (i++*75), 100, 40, "Families"));
-  buttonArrayStartpage.push(new Btn(250, 150 + (i*75), 100, 40, "Locations"));
+  buttonArrayStartpage.push(new Btn(250, 150 + (i++*75), 100, 40, "Locations"));
+
+
+  upButton = new Btn(50, 225, 100, 40, "up");
+  downButton = new Btn(50, 275, 100, 40, "down");
+
 
   
 
@@ -84,6 +92,9 @@ function draw() {
       print("koko");
       break;
   }
+
+  upButton.drawButton();
+  downButton.drawButton();
 }
 
 function drawTraits() {
@@ -128,6 +139,9 @@ function drawTraits() {
   }
 }
 
+
+let mcounter = 0;
+let currentBtn;
 function startPage() {
   background(200);
   fill(100);
@@ -138,15 +152,26 @@ function startPage() {
   
   for (let i = 0; i < buttonArrayStartpage.length; i++) {
     buttonArrayStartpage[i].drawButton();
-    currentButton = buttonArrayStartpage[i];
+    currentButton = buttonArrayStartpage[arrowPosition];
   }
 
-  let xPositionArrow = currentButton.getXPosition() - 30;
+  let xPositionArrow = currentButton.getXPosition() - 25;
   let yPositionArrow = currentButton.getYPosition() + currentButton.getHeight()/1.5;
 
   fill(0);
   textSize(25);
-  text("->", xPositionArrow, yPositionArrow);
+  text(">", xPositionArrow, yPositionArrow);
+
+
+  if (upButton.isPressed) { 
+    moveArrow("up");
+  }
+
+  if (downButton.isPressed) { 
+    moveArrow("down");
+  } 
+
+  
 }
 
 var charactersFromJSON = []; // array to store the character objects
@@ -181,8 +206,41 @@ function gotResult(error, results) { // from example
   console.log(results);
   // Show the first label and confidence
   label.html('Label: ' + results[0].label);
-  word = results[0].label;
   confidence.html('Confidence: ' + nf(results[0].confidence, 0, 2)); // Round the confidence to 0.01
+  word = results[0].label;
+  moveArrow(word); 
+}
+
+let timer;
+
+function moveArrow(newWord) {
+  if (word == newWord) {
+    if (timer + 500 > millis()) {
+      return;
+    }
+  }
+
+  word = newWord;
+
+  if (word == "down") {
+    timer = millis();
+    if (arrowPosition < buttonArrayStartpage.length - 1 && arrowPosition >= 0) {
+      arrowPosition++;
+    } else if (arrowPosition == buttonArrayStartpage.length - 1) {
+      arrowPosition = 0;
+    }
+  } 
+  print(arrowPosition);
+    timer = millis();
+  if (word == "up") {
+    if (arrowPosition > 0 && arrowPosition <= buttonArrayStartpage.length - 1) {
+      arrowPosition--;
+    } else if (arrowPosition == 0) {
+      arrowPosition = buttonArrayStartpage.length - 1;
+    }
+  } 
+
+  word = "";
 }
 
 
