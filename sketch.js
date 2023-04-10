@@ -1,10 +1,12 @@
 // machine learning variables. Taken from example.
+
 let classifier;
 const options = { probabilityThreshold: 0.75 };
 let label;
 let confidence;
 let currentScreen = "Start";
 let word;
+let arrowPosition = 0;
 
 // api variables
 
@@ -131,11 +133,21 @@ function startPage() {
   fill(100);
   textSize(32);
   text("hello welcome to our program.\n You use your voice to navigate here...", 10, 100);
+  
+  let currentButton;
+  
   for (let i = 0; i < buttonArrayStartpage.length; i++) {
     buttonArrayStartpage[i].drawButton();
+    currentButton = buttonArrayStartpage[i];
   }
-}
 
+  let xPositionArrow = currentButton.getXPosition() - 30;
+  let yPositionArrow = currentButton.getYPosition() + currentButton.getHeight()/1.5;
+
+  fill(0);
+  textSize(25);
+  text("->", xPositionArrow, yPositionArrow);
+}
 
 var charactersFromJSON = []; // array to store the character objects
 

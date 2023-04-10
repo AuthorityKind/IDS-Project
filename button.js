@@ -44,4 +44,20 @@ class Btn{
       fill(255,255,255);
       rect(this.x,this.y,this.width,this.height);
     }
+
+    getXPosition() {
+      return this.x;
+    }
+
+    getYPosition() {
+      return this.y;
+    }
+
+    getWidth() {
+      return this.width;
+    }
+
+    getHeight() {
+      return this.height;
+    }
 }
