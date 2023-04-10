@@ -10,6 +10,8 @@ let word;
 let arrowPosition = 0;
 let wordCount = 0;
 
+let choosingPage = false;
+
 // api variables
 
 var api = "https://spapi.dev/api/";
@@ -65,8 +67,8 @@ function setup() {
   buttonArrayStartpage.push(new Btn(250, 150 + (i++*75), 100, 40, "Locations"));
 
 
-  upButton = new Btn(50, 225, 100, 40, "up");
-  downButton = new Btn(50, 275, 100, 40, "down");
+  upButton = new Btn(10, 225, 100, 40, "up");
+  downButton = new Btn(10, 275, 100, 40, "down");
 
 
   
@@ -92,12 +94,22 @@ function draw() {
       print("koko");
       break;
   }
-
   upButton.drawButton();
   downButton.drawButton();
+
+  if (choosingPage) {
+    fill(250,0,0);
+    rect(150, 250, 300, 100);
+    fill(0);
+    textSize(19);
+    text("Do you want to access this page?", 155, 285);
+    text("Say \"yes\" to enter, \"no\" to reselect", 155, 315);
+  }
+
 }
 
 function drawTraits() {
+  background(200);
   for (i = 0; i < buttonArrayStart.length; i++) {
     buttonArrayStart[i].drawButton();
     if (buttonArrayStart[i].isOn && counter == 0) {
@@ -122,7 +134,7 @@ function drawTraits() {
   } else {
     fill(100,255,167);
   }
-  rect(100, 100, 400, 400);
+  rect(125, 100, 400, 400);
   textSize(20);
   fill(0);
   text("Traits: ", 200, 120);
@@ -131,7 +143,7 @@ function drawTraits() {
   for (let key in currentResource) { // we want to display every key and value from the object except the ones in the if condition. 
     if (currentResource[key] != null && key != "updated_at" && key != "created_at" && key != "episodes" && key != "url" && key != "relatives" && key != "id" && key != "family") {
 
-      text(key + ":", 120, 100 + (70 + (counter2 * 40))); 
+      text(key + ":", 130, 100 + (70 + (counter2 * 40))); 
       text(currentResource[key], 250, 100 + (70 + (counter2 * 40))); 
       counter2++;
       
@@ -229,16 +241,21 @@ function moveArrow(newWord) {
     } else if (arrowPosition == buttonArrayStartpage.length - 1) {
       arrowPosition = 0;
     }
-  } 
-  print(arrowPosition);
+  } else if (word == "up") {
     timer = millis();
-  if (word == "up") {
     if (arrowPosition > 0 && arrowPosition <= buttonArrayStartpage.length - 1) {
       arrowPosition--;
     } else if (arrowPosition == 0) {
       arrowPosition = buttonArrayStartpage.length - 1;
     }
+  } else if (word == "go") {
+    choosingPage = true;
   } 
+
+  if (word == "yes" && choosingPage) {
+    currentScreen = "data_page";
+    choosingPage = false;
+  }
 
   word = "";
 }
