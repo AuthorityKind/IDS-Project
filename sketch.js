@@ -1,3 +1,10 @@
+// machine learning variables. Taken from example.
+let classifier;
+const options = { probabilityThreshold: 0.75 };
+let label;
+let confidence;
+
+let wordArray;
 
 // api variables
 
@@ -27,6 +34,7 @@ var currentResource;
 
 // we add functionality to load only the characters for now
 function preload() {
+  classifier = ml5.soundClassifier('SpeechCommands18w', options); // taken from example
   var url = api + resource["characters"]; // create the final url
   loadJSON(url, loadData); // load the data
 }
@@ -34,7 +42,9 @@ function preload() {
 
 function setup() {
   createCanvas(600, 600);
-  //console.log(test);
+  label = createDiv('Label: ...'); // taken from example
+  confidence = createDiv('Confidence: ...'); // taken from example
+  classifier.classify(gotResult); // taken from example
   var i = 0;
   buttonArray.push(new Btn(60 + (i * 75), 10, 70, 25, resourceNames[i]));
 
@@ -69,7 +79,11 @@ function draw() {
 }
 
 function drawTraits() {
-  fill(255, 160, 90);
+  if (wordArray == "up") {
+    fill(255, 160, 90);
+  } else {
+    fill(100,255,167);
+  }
   rect(100, 100, 400, 400);
   textSize(20);
   fill(0);
@@ -132,3 +146,19 @@ function loadDataCluster(json) {
   }
 }
 
+
+
+
+// A function to run when we get any errors and the results
+function gotResult(error, results) { // from example
+  // Display error in the console
+  if (error) {
+    console.error(error);
+  }
+  // The results are in an array ordered by confidence.
+  console.log(results);
+  // Show the first label and confidence
+  label.html('Label: ' + results[0].label);
+  wordArray = results[0].label;
+  confidence.html('Confidence: ' + nf(results[0].confidence, 0, 2)); // Round the confidence to 0.01
+}
