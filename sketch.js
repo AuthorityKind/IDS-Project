@@ -1,16 +1,17 @@
-var api = "https://spapi.dev/api/";
-var arr = [];
-var isLoading = false;
-var loadCheck = {
-  characters: false,
-  locations: false,
-  families: false,
-  episodes: false
-}
-const loadKeys = Object.keys(loadCheck);
+const api = "https://spapi.dev/api/";
+const dataKeys = ["characters", "locations", "families", "episodes"];
+var targetData;
 
 var characters;
-var charactersKeys = ["id", "name", "age", "sex", "occupation", "religion", "family"];
+var charactersKeys = [
+  "id",
+  "name",
+  "age",
+  "sex",
+  "occupation",
+  "religion",
+  "family",
+];
 
 var locations;
 var locationKeys = ["id", "name"];
@@ -21,81 +22,59 @@ var familiesKeys = ["id", "name", "characters"];
 var episodes;
 var episodeKeys = ["id", "name", "season", "episode", "air_date"];
 
-function preload() {
-  characters = new Data(api + "characters", charactersKeys);
-  locations = new Data(api + "locations", locationKeys);  
-  families = new Data(api + "families", familiesKeys);
-  episodes = new Data(api + "episodes", episodeKeys);
-  initiateLoading();
-}
+function preload() {}
 
 function setup() {
-  //loadJSON(characters.url, loadData);
-  console.log(characters.content);
-  console.log(locations.content);
-  console.log(families.content);
-  console.log(episodes.content);
-
-  //arr = resetArr();
-  //loadJSON(locations.url, loadData)
-
+  setupData();
+  loadSpecificData(dataKeys[1]);
+  console.log(getDataCollection(targetData).content);
 }
 
-function initiateLoading(){
-  for(var i = 0; i < loadKeys.length; i++){
-    while(loadCheck[loadKeys[]] == false){
-      if(isLoading == false){
-        loadJSON(getLoadingCollection().url, loadData);
-      }
-    }
-  }
-  loadKeys.forEach(key => {
-    
-  });
+function setupData() {
+  characters = new Data(api + "characters", charactersKeys);
+  locations = new Data(api + "locations", locationKeys);
+  families = new Data(api + "families", familiesKeys);
+  episodes = new Data(api + "episodes", episodeKeys);
+}
+
+//function initiateLoading() {}
+
+function loadSpecificData(name) {
+  targetData = name;
+  loadJSON(getDataCollection(targetData).url, loadData);
 }
 
 function loadData(json) {
-  //const realTotal = Number(json.meta["last_page"]);
-  isLoading = true;
-  const fakeTotal = 20;
-
-  for (var i = 1; i <= fakeTotal; i++) {
-    loadJSON(api + checkCurrentlyLoading() + "?page=" + i, loadDataCluster);
+  const realTotal = Number(json.meta["last_page"]);
+  for (var i = 1; i <= realTotal; i++) {
+    loadJSON(api + targetData + "?page=" + i, loadDataCluster);
   }
-
-  loadCheck[checkCurrentlyLoading()] = true;
-  isLoading = false;
 }
 
 function loadDataCluster(json) {
-  for (var i = 0; i < Number(json.meta["per_page"]); i++) {
-    const obj = json.data[i];
-    getLoadingCollection().content.push(obj);
-  }
-}
-
-function resetArr() {
-  const out = [];
-  return out;
-}
-
-function checkCurrentlyLoading(){
-  for(var i = 0; i < loadKeys.length; i++){
-    if(loadCheck[loadKeys[i]] == false){
-      return loadKeys[i];
+  if (json != null && json != undefined) {
+    for (var i = 0; i < Number(json.meta["per_page"]); i++) {
+      const obj = json.data[i];
+      getDataCollection(targetData).content.push(obj);
+      var count = 0;
+      while (count < 10000){
+        count++;
+      }
     }
   }
 }
 
-function getLoadingCollection(){
-  switch (checkCurrentlyLoading()){
-    case loadKeys[0]:
+function getDataCollection(name) {
+  switch (name) {
+    case "characters":
       return characters;
-    case loadKeys[1]:
+    case "locations":
       return locations;
-    case loadKeys[2]:break;
+    case "families":
       return families;
-    case loadKeys[3]:
+    case "episodes":
       return episodes;
+    default:
+      return null;
   }
 }
