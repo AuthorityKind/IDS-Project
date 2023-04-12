@@ -4,7 +4,7 @@ let classifier;
 const options = { probabilityThreshold: 0.75 };
 let label;
 let confidence;
-let currentScreen = "data_selection";//"Start";
+let currentScreen = "Start";
 
 let word;
 let arrowPosition = 0;
@@ -25,6 +25,11 @@ var resource = {
 // button array
 var buttonArrayStart = [];
 var buttonArrayStartpage = [];
+
+var generalButtons = [];
+let upButton;
+let downButton;
+let backButton;
 
 var buttonArrayDataSelection = [];
 var buttonArrayCharacters = [];
@@ -53,8 +58,7 @@ function preload() {
   loadJSON(url, loadData); // load the data
 }
 
-let upButton;
-let downButton;
+
 
 function setup() {
   createCanvas(600, 600);
@@ -67,10 +71,15 @@ function setup() {
 
 
 
-  upButton = new Btn(10, 225, 100, 40, "up");
-  downButton = new Btn(10, 275, 100, 40, "down");
+  upButton = new Btn(10, 225, 100, 40, "Up");
+  downButton = new Btn(10, 275, 100, 40, "Down");
+
+  backButton = new Btn(10, 550, 100, 40, "Back");
 
 
+  generalButtons.push(upButton);
+  generalButtons.push(downButton);
+  generalButtons.push(backButton);
   
 
   //buttonArray.push(new Btn(60 + (i*75),10,70,25, "Clear"));
@@ -100,8 +109,17 @@ function draw() {
     currentButtons[i].drawButton();
   }
 
-  upButton.drawButton();
-  downButton.drawButton();
+  for(var i = 0; i < generalButtons.length; i++) { // draw up and down button
+    generalButtons[i].drawButton();
+  }
+
+  if (upButton.isPressed) { // logic for up button
+    moveArrow("up");
+  }
+
+  if (downButton.isPressed) { // logic for down button
+    moveArrow("down");
+  } 
 
   fill(125);
 
@@ -122,9 +140,9 @@ function draw() {
 
 function drawTraits() {
   background(200);
-  for (i = 0; i < buttonArrayStart.length; i++) {
-    buttonArrayStart[i].drawButton();
-    if (buttonArrayStart[i].isOn && counter == 0) {
+  for (i = 0; i < currentButtons.length; i++) {
+    currentButtons[i].drawButton();
+    if (currentButtons[i].isOn && counter == 0) {
 
       counter++;
       currentResource = charactersFromJSON[int(random(1, charactersFromJSON.length - 1))];
@@ -133,9 +151,7 @@ function drawTraits() {
         currentResource = charactersFromJSON[int(random(1, charactersFromJSON.length - 1))];
       }
 
-      print(currentResource);
-
-    } else if (!buttonArrayStart[i].isOn) {
+    } else if (!currentButtons[i].isOn) {
       counter = 0; // reset button
     }
     
@@ -163,21 +179,6 @@ function drawTraits() {
   }
 }
 
-function drawArrow() {
-  if (typeof currentButtons[arrowPosition] != 'undefined' && arrowPosition < currentButtons.length) { // draw arrow for buttons
-
-    let xPositionArrow = currentButtons[arrowPosition].getXPosition() + currentButtons[arrowPosition].getWidth() + 46;
-    let yPositionArrow = currentButtons[arrowPosition].getYPosition() + currentButtons[arrowPosition].getHeight() - 19;
-  
-    fill(0);
-    textSize(25);
-    text("<", xPositionArrow, yPositionArrow);
-
-    text("arrow pos: " + arrowPosition, 50, 400);
-  }
-}
-
-let mcounter = 0;
 
 function infoBox() {
   fill(230);
@@ -198,8 +199,6 @@ function startPage() {
   text("Welcome to our voice activated program.\nYou can use your voice to navigate.", 10, 25);
   
   infoBox();
-
-  let currentButton = null;
   
   if (buttonArrayStartpage.length == 0) {
     var i = 0;
@@ -209,19 +208,6 @@ function startPage() {
     buttonArrayStartpage.push(new Btn(250, 150 + (i++*75), 100, 40, "Locations"));
     currentButtons = buttonArrayStartpage;
   }
-
-
-
-
-  if (upButton.isPressed) { 
-    moveArrow("up");
-  }
-
-  if (downButton.isPressed) { 
-    moveArrow("down");
-  } 
-
-  
 }
 
 var charactersFromJSON = []; // array to store the character objects
@@ -269,69 +255,113 @@ function moveArrow(newWord) {
       return;
     }
   }
-
   word = newWord;
 
-  if (word == "down") {
-    timer = millis();
-    if (arrowPosition < buttonArrayStartpage.length - 1 && arrowPosition >= 0) {
-      arrowPosition++;
-    } else if (arrowPosition == buttonArrayStartpage.length - 1) {
-      arrowPosition = 0;
-    }
-  } else if (word == "up") {
-    timer = millis();
-    if (arrowPosition > 0 && arrowPosition <= buttonArrayStartpage.length - 1) {
-      arrowPosition--;
-    } else if (arrowPosition == 0) {
-      arrowPosition = buttonArrayStartpage.length - 1;
-    }
-  } 
+  timer = millis();
 
-  
+
   if (word == "go") {
     choosingPage = true;
   } 
 
-  if (word == "zero") {
-    arrowPosition = 0;
-  } else if (word == "one") {
-    arrowPosition = 1;
-  } else if (word == "two") {
-    arrowPosition = 2;
-  } else if (word == "three") {
-    arrowPosition = 3;
-  } else if (word == "four") {
-    arrowPosition = 4;
-  } else if (word == "five") {
-    arrowPosition = 5;
-  } else if (word == "six") {
-    arrowPosition = 6;
-  } else if (word == "seven") {
-    arrowPosition = 7;
-  } else if (word == "eight") {
-    arrowPosition = 8;
-  } else if (word == "nine") {
-    arrowPosition = 9;
+  if (choosingPage) {
+      if (word == "yes") {
+        arrowPosition = 0;
+        if (currentScreen == "Start") {
+          currentScreen = "data_selection";
+        } else if (currentScreen == "data_selection") {
+          currentScreen = "data_page";
+          currentButtons = [];
+        }
+        choosingPage = false;
+    } else if (word == "no") {
+        choosingPage = false;
+    }
+    return;
   }
 
 
-  if (word == "yes" && choosingPage) {
-    currentScreen = "data_page";
-    choosingPage = false;
-  } else if (word = "no") {
-    choosingPage = false;
-  }
+  if (word == "down") {
+    if (arrowPosition < currentButtons.length - 1 && arrowPosition >= 0) {
+      arrowPosition++;
+    } else if (arrowPosition == currentButtons.length - 1) {
+      arrowPosition = 0;
+    }
+  } else if (word == "up") {
+    if (arrowPosition > 0 && arrowPosition <= currentButtons.length - 1) {
+      arrowPosition--;
+    } else if (arrowPosition == 0) {
+      arrowPosition = currentButtons.length - 1;
+    }
+  } 
+  
+  
 
+
+if (word == "zero") {
+  updateArrowPosition(0);
+} else if (word == "one") {
+  updateArrowPosition(1);
+
+} else if (word == "two") {
+  updateArrowPosition(2);
+
+} else if (word == "three") {
+  updateArrowPosition(3);
+
+} else if (word == "four") {
+  updateArrowPosition(4);
+
+} else if (word == "five") {
+  updateArrowPosition(5);
+
+} else if (word == "six") {
+  updateArrowPosition(6);
+
+} else if (word == "seven") {
+  updateArrowPosition(7);
+
+} else if (word == "eight") {
+  updateArrowPosition(8);
+
+} else if (word == "nine") {
+  updateArrowPosition(9);
+
+}
   word = null;
+}
+
+if (word == "left") {
+  //
+}
+
+function updateArrowPosition(number) {
+
+  if (number < currentButtons.length) {
+    arrowPosition = number;
+  }
+}
+
+function drawArrow() {
+  if (typeof currentButtons[arrowPosition] != 'undefined' && arrowPosition < currentButtons.length) { // draw arrow for buttons
+
+    let xPositionArrow = currentButtons[arrowPosition].getXPosition() + currentButtons[arrowPosition].getWidth() + 31;
+    let yPositionArrow = currentButtons[arrowPosition].getYPosition() + currentButtons[arrowPosition].getHeight() - 19;
+  
+    fill(0);
+    textSize(25);
+    text("<", xPositionArrow, yPositionArrow);
+
+    text("arrow pos: " + arrowPosition, 50, 400);
+  }
 }
 
 function dataSelectionPage() {
   background(220);
+  let currentData = names;
   if (buttonArrayDataSelection.length == 0) {
-    print("load buttons");
     for (var i = 0; i < 10; i++) {
-      buttonArrayDataSelection[i] = new Btn(width/2 - 50,10+(i*55),100,50, "character " + i)
+      buttonArrayDataSelection[i] = new Btn(width/2 - 50,10+(i*55),125,50, currentData[i])
     }
     currentButtons = buttonArrayDataSelection;
 
@@ -344,12 +374,10 @@ function drawIndexes() {
 
   for (var i = 0; i < currentButtons.length; i++) {
 
-    let xPosition = currentButtons[i].getXPosition() + currentButtons[i].getWidth() + 25;
+    let xPosition = currentButtons[i].getXPosition() + currentButtons[i].getWidth() + 10;
     let yPosition = currentButtons[i].getYPosition() + currentButtons[i].getHeight()/1.5;
 
     text(i, xPosition, yPosition);    
   }
-
-  text("abe", 40, 40);
 
 }
