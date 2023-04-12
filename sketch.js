@@ -4,7 +4,7 @@ let classifier;
 const options = { probabilityThreshold: 0.75 };
 let label;
 let confidence;
-let currentScreen = "Start";
+let currentScreen = "data_selection";//"Start";
 
 let word;
 let arrowPosition = 0;
@@ -55,6 +55,7 @@ function preload() {
 
 let upButton;
 let downButton;
+
 function setup() {
   createCanvas(600, 600);
   label = createDiv('Label: ...'); // taken from example
@@ -100,6 +101,8 @@ function draw() {
 
   upButton.drawButton();
   downButton.drawButton();
+
+  drawArrow();
 
   if (choosingPage) {
     fill(250,0,0);
@@ -154,6 +157,24 @@ function drawTraits() {
   }
 }
 
+function drawArrow() {
+  if (arrowPosition < currentButtons.length) { // draw arrow for buttons
+
+    currentButton = currentButtons[arrowPosition];
+    let xPositionArrow = currentButton.getXPosition() - 25;
+    let yPositionArrow = currentButton.getYPosition() + currentButton.getHeight()/1.5;
+  
+    fill(0);
+    textSize(25);
+    text(">", xPositionArrow, yPositionArrow);
+
+    
+    fill(0);
+    textSize(25);
+    text("arrow pos: " + arrowPosition, 50, 400);
+  }
+}
+
 
 let mcounter = 0;
 let currentBtn;
@@ -189,20 +210,6 @@ function startPage() {
   }
 
 
-  if (arrowPosition < buttonArrayStartpage.length) {
-
-  currentButton = buttonArrayStartpage[arrowPosition];
-  let xPositionArrow = currentButton.getXPosition() - 25;
-  let yPositionArrow = currentButton.getYPosition() + currentButton.getHeight()/1.5;
-
-  fill(0);
-  textSize(25);
-  text(">", xPositionArrow, yPositionArrow);
-}
-
-  fill(0);
-  textSize(25);
-  text("arrow pos: " + arrowPosition, 50, 400);
 
 
   if (upButton.isPressed) { 
