@@ -80,6 +80,7 @@ function setup() {
 
 // counter is to check if a character has already been selected
 var counter = 0;
+
 function draw() {
   switch (currentScreen) {
     case "Start":
@@ -102,6 +103,10 @@ function draw() {
   upButton.drawButton();
   downButton.drawButton();
 
+  fill(125);
+
+  drawIndexes();
+
   drawArrow();
 
   if (choosingPage) {
@@ -111,6 +116,7 @@ function draw() {
     textSize(19);
     text("Do you want to access this page?", 155, 285);
     text("Say \"yes\" to enter, \"no\" to reselect", 155, 315);
+    
   }
 }
 
@@ -158,26 +164,21 @@ function drawTraits() {
 }
 
 function drawArrow() {
-  if (arrowPosition < currentButtons.length) { // draw arrow for buttons
+  if (typeof currentButtons[arrowPosition] != 'undefined' && arrowPosition < currentButtons.length) { // draw arrow for buttons
 
-    currentButton = currentButtons[arrowPosition];
-    let xPositionArrow = currentButton.getXPosition() - 25;
-    let yPositionArrow = currentButton.getYPosition() + currentButton.getHeight()/1.5;
+    let xPositionArrow = currentButtons[arrowPosition].getXPosition() + currentButtons[arrowPosition].getWidth() + 46;
+    let yPositionArrow = currentButtons[arrowPosition].getYPosition() + currentButtons[arrowPosition].getHeight() - 19;
   
     fill(0);
     textSize(25);
-    text(">", xPositionArrow, yPositionArrow);
+    text("<", xPositionArrow, yPositionArrow);
 
-    
-    fill(0);
-    textSize(25);
     text("arrow pos: " + arrowPosition, 50, 400);
   }
 }
 
-
 let mcounter = 0;
-let currentBtn;
+
 function infoBox() {
   fill(230);
   rect(400, 300, 190, 250);
@@ -333,9 +334,22 @@ function dataSelectionPage() {
       buttonArrayDataSelection[i] = new Btn(width/2 - 50,10+(i*55),100,50, "character " + i)
     }
     currentButtons = buttonArrayDataSelection;
-  }
 
-  
+  }
 }
 
+function drawIndexes() {
 
+  textSize(25);
+
+  for (var i = 0; i < currentButtons.length; i++) {
+
+    let xPosition = currentButtons[i].getXPosition() + currentButtons[i].getWidth() + 25;
+    let yPosition = currentButtons[i].getYPosition() + currentButtons[i].getHeight()/1.5;
+
+    text(i, xPosition, yPosition);    
+  }
+
+  text("abe", 40, 40);
+
+}
