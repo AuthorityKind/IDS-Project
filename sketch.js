@@ -39,23 +39,10 @@ var buttonArrayLocations = [];
 
 var currentButtons = [];
 
-// variable for total amount of south park(sp) characters that the api has
-var total;
 
-// array for the names of the sp characters
-var names = [];
-
-// the different categories that we can load from
-var resourceNames = ["Characters", "Families", "Locations", "Episodes"];
-
-// the current resource that we want to display, is represented as an object. 
-var currentResource;
-
-// we add functionality to load only the characters for now
 function preload() {
   classifier = ml5.soundClassifier('SpeechCommands18w', options); // taken from example
-  var url = api + resource["characters"]; // create the final url
-  loadJSON(url, loadData); // load the data
+
 }
 
 
@@ -67,7 +54,7 @@ function setup() {
   classifier.classify(gotResult); // taken from example
   var i = 0;
 
-  buttonArrayStart.push(new Btn(60 + (i * 75), 10, 70, 25, resourceNames[i]));
+  buttonArrayStart.push(new Btn(60 + (i * 75), 10, 70, 25, i));
 
 
 
@@ -81,10 +68,6 @@ function setup() {
   generalButtons.push(downButton);
   generalButtons.push(backButton);
   
-
-  //buttonArray.push(new Btn(60 + (i*75),10,70,25, "Clear"));
-  console.log(names); // print all the names array
-  print(charactersFromJSON); // print the array of character objects
 }
 
 // counter is to check if a character has already been selected
@@ -145,10 +128,10 @@ function drawTraits() {
     if (currentButtons[i].isOn && counter == 0) {
 
       counter++;
-      currentResource = charactersFromJSON[int(random(1, charactersFromJSON.length - 1))];
+      currentResource = [];
 
       while (typeof currentResource === 'undefined') { // if the character somehow is undefined, run the same line until it is not
-        currentResource = charactersFromJSON[int(random(1, charactersFromJSON.length - 1))];
+        currentResource = [];
       }
 
     } else if (!currentButtons[i].isOn) {
@@ -168,15 +151,7 @@ function drawTraits() {
   text("Traits: ", 200, 120);
   counter2 = 0; // counter for the items in the current resource
 
-  for (let key in currentResource) { // we want to display every key and value from the object except the ones in the if condition. 
-    if (currentResource[key] != null && key != "updated_at" && key != "created_at" && key != "episodes" && key != "url" && key != "relatives" && key != "id" && key != "family") {
 
-      text(key + ":", 130, 100 + (70 + (counter2 * 40))); 
-      text(currentResource[key], 250, 100 + (70 + (counter2 * 40))); 
-      counter2++;
-      
-    }
-  }
 }
 
 
@@ -189,9 +164,8 @@ function infoBox() {
 
   textSize(15);
   text("In order to navigate through\nthe site; say \"up\" to move\nthe arrow one button up,\n\"down\" to move it one down.\nOr you can specify which\nbutton you want to use by\nsaying its number.\nThe numbering starts at 0.\nIf everything fails,\nthen there are buttons to\nhelp do the navigatation.", 405, 345);
-
-
 }
+
 function startPage() {
   background(200);
   fill(0);
@@ -207,28 +181,6 @@ function startPage() {
     buttonArrayStartpage.push(new Btn(250, 150 + (i++*75), 100, 40, "Families"));
     buttonArrayStartpage.push(new Btn(250, 150 + (i++*75), 100, 40, "Locations"));
     currentButtons = buttonArrayStartpage;
-  }
-}
-
-var charactersFromJSON = []; // array to store the character objects
-
-function loadData(json) {
-  total = Number(json.meta["total"]); // set total to number of characters on api 
-  names = new Array(total);
-  for (var i = 1; i < Number(json.meta["last_page"] - 1); i++) { // loop over the pages (we skip the last 2 because there are errors) to collect data
-    loadJSON(api + "characters?page=" + i, loadDataCluster); 
-  }
-}
-
-function loadDataCluster(json) {
-  var length = 0;
-  if (charactersFromJSON.length != 0) {
-    length = charactersFromJSON.length + 1; // to find the correcet index in the array
-  }
-  
-  for (var i = 0; i < Number(json.meta["per_page"]); i++) {
-    names[i + (Number(json.meta["from"]) - 1)] = json.data[i]["name"]; // insert name into name array
-    charactersFromJSON[length + i] = json["data"][i]; // insert object into the character array
   }
 }
 
@@ -358,10 +310,9 @@ function drawArrow() {
 
 function dataSelectionPage() {
   background(220);
-  let currentData = names;
   if (buttonArrayDataSelection.length == 0) {
     for (var i = 0; i < 10; i++) {
-      buttonArrayDataSelection[i] = new Btn(width/2 - 50,10+(i*55),125,50, currentData[i])
+      buttonArrayDataSelection[i] = new Btn(width/2 - 50,10+(i*55),125,50, i)
     }
     currentButtons = buttonArrayDataSelection;
 
