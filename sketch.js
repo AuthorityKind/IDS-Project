@@ -13,14 +13,30 @@ let wordCount = 0;
 let choosingPage = false;
 
 // api variables
+const api = "https://spapi.dev/api/";
+const dataKeys = ["characters", "locations", "families", "episodes"];
+var targetData;
 
-var api = "https://spapi.dev/api/";
-var resource = {
-  episodes: "episodes/",
-  locations: "locations/",
-  families: "families/",
-  characters: "characters/",
-};
+var characters;
+var charactersKeys = [
+  "id",
+  "name",
+  "age",
+  "sex",
+  "occupation",
+  "religion",
+  "family",
+];
+
+var locations;
+var locationKeys = ["id", "name"];
+
+var families;
+var familiesKeys = ["id", "name", "characters"];
+
+var episodes;
+var episodeKeys = ["id", "name", "season", "episode", "air_date"];
+
 
 // button array
 var buttonArrayStart = [];
@@ -49,6 +65,11 @@ function preload() {
 
 function setup() {
   createCanvas(600, 600);
+
+  setupData();
+  loadSpecificData(dataKeys[1]);
+  console.log(getDataCollection(targetData).content);
+
   label = createDiv('Label: ...'); // taken from example
   confidence = createDiv('Confidence: ...'); // taken from example
   classifier.classify(gotResult); // taken from example
@@ -69,6 +90,56 @@ function setup() {
   generalButtons.push(backButton);
   
 }
+
+function setupData() {
+  characters = new Data(api + "characters", charactersKeys);
+  locations = new Data(api + "locations", locationKeys);
+  families = new Data(api + "families", familiesKeys);
+  episodes = new Data(api + "episodes", episodeKeys);
+}
+
+//function initiateLoading() {}
+
+function loadSpecificData(name) {
+  targetData = name;
+  loadJSON(getDataCollection(targetData).url, loadData);
+}
+
+function loadData(json) {
+  const realTotal = Number(json.meta["last_page"]);
+  for (var i = 1; i <= realTotal; i++) {
+    loadJSON(api + targetData + "?page=" + i, loadDataCluster);
+  }
+}
+
+function loadDataCluster(json) {
+  if (json != null && json != undefined) {
+    for (var i = 0; i < Number(json.meta["per_page"]); i++) {
+      const obj = json.data[i];
+      getDataCollection(targetData).content.push(obj);
+      var count = 0;
+      while (count < 10000){
+        count++;
+      }
+    }
+  }
+}
+
+function getDataCollection(name) {
+  switch (name) {
+    case "characters":
+      return characters;
+    case "locations":
+      return locations;
+    case "families":
+      return families;
+    case "episodes":
+      return episodes;
+    default:
+      return null;
+  }
+}
+
 
 // counter is to check if a character has already been selected
 var counter = 0;
@@ -219,11 +290,19 @@ function moveArrow(newWord) {
   if (choosingPage) {
       if (word == "yes") {
         arrowPosition = 0;
+
+        
         if (currentScreen == "Start") {
           currentScreen = "data_selection";
+
+
         } else if (currentScreen == "data_selection") {
+
+
           currentScreen = "data_page";
           currentButtons = [];
+
+
         }
         choosingPage = false;
     } else if (word == "no") {
