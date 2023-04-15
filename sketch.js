@@ -1,7 +1,7 @@
 // machine learning variables. Taken from example.
 
 let classifier;
-const options = { probabilityThreshold: 0.75 };
+const options = { probabilityThreshold: 0.80 };
 let label;
 let confidence;
 let currentScreen = "Start";
@@ -64,7 +64,6 @@ let lastScreen;
 
 function preload() {
   classifier = ml5.soundClassifier('SpeechCommands18w', options); // taken from example
-
 }
 
 
@@ -100,19 +99,13 @@ function setupData() {
   episodes = new Data(api + "episodes", episodeKeys);
 }
 
-function load10(name, callback) {
+function load10(name) {
   dataArray = [];
-  let counter = 0;
   targetData = name;
 
   for (var i = 1; i <= 10; i++) {
     loadJSON(getDataCollection(targetData).url + "/" + i, function(json) {
-
       dataArray.push(json.data);
-      counter++;
-      if (counter === 10) {
-        callback(dataArray);
-      }
     });
 
   }
@@ -165,16 +158,6 @@ let currentIndex = 0;
 let counter = 0;
 
 function draw() {
-
-
-  for(var i = 0; i < 10; i++) {
-    if (typeof dataArray[i] != 'undefined') {
-      //console.log("loop outside " + dataArray[i]["name"]);
-    }
-  }
-
-
-
   switch (currentScreen) {
     case "Start":
       startPage();
@@ -233,6 +216,7 @@ function draw() {
 
 function drawTraits() {
   background(200);
+
   for (i = 0; i < currentButtons.length; i++) {
     currentButtons[i].drawButton();
     if (currentButtons[i].isOn && counter == 0) {
@@ -259,7 +243,18 @@ function drawTraits() {
   textSize(20);
   fill(0);
   text("Traits: ", 200, 120);
+
   counter2 = 0; // counter for the items in the current resource
+    for (let key in dataArray[dataIndex]) {
+      if (dataArray[dataIndex] != null && dataArray[dataIndex][key] != null 
+        && key != "updated_at" && key != "created_at" && key != "url" && key != "family "&& key != "episodes") {
+        text(key + ":", 130, 100 + (70 + (counter2 * 40))); 
+        text(dataArray[dataIndex][key], 250, 100 + (70 + (counter2 * 40))); 
+        counter2++;
+      }
+    }
+  
+
 
 
 }
@@ -319,7 +314,14 @@ let specificContent = [];
 
 let resourceData = [];
 
-function moveArrow() {
+function moveArrow(newWord) {
+
+  if (newWord == word && timer + 1000 > millis()) {
+    return;
+  }
+  timer = millis();
+
+
 
   // choosing to go back or not
   if (goBack) {
@@ -336,19 +338,19 @@ function moveArrow() {
   // if we are choosing a specific page
   if (choosingPage) {
     if (word == "yes") {
+      console.log(currentScreen);
       if (currentScreen == "Start") {
         dataSelectionIndex = arrowPosition;
         currentIndex = dataSelectionIndex;
 
+        dataArray = [];
         load10(dataKeys[currentIndex], function(dataArray) {
         });
-
-
-
-
         changeScreen("data_selection");
-
+        buttonArrayDataSelection = [];
+        
       } else if (currentScreen == "data_selection") {
+        buttonArrayDataSelection = [];
         dataIndex = arrowPosition;
         currentIndex = dataIndex;
         changeScreen("data_page");
@@ -385,10 +387,9 @@ function moveArrow() {
     }
   } 
 
-  // go back to last screen
+  // prompt to go back to last screen
   if (word == "no" && currentScreen != "start_page") {
     goBack = true;
-    changeScreen("last");
   }
 
   // navigation commands, numbers
@@ -429,9 +430,12 @@ function moveArrow() {
 function changeScreen(newScreen) {
 
   if (newScreen == "last") {
-    currentScreen = lastScreen
+    if (currentScreen == "data_selection") {
+      currentScreen = "Start";
+    } else {
+      currentScreen = "data_selection";
+    }
   } else {
-    lastScreen = currentScreen;
     currentScreen = newScreen;
   }
 
@@ -473,17 +477,31 @@ function drawArrow() {
 }
 
 let content;
+let contentLoaded = false;
 
 function dataSelectionPage() {
   background(220);
 
   fill(12);
   textSize(32);
-  text("page: " + dataKeys[currentIndex], 10, 50);
+  text("page: " + dataKeys[dataSelectionIndex], 10, 50);
 
 
-  if (typeof dataArray[9] != 'undefined' && buttonArrayDataSelection.length == 0) {
+
+  for (var i = 0; i < 10; i++) {
+    if (typeof dataArray[i] == 'undefined') {
+      contentLoaded = false;
+      break;
+    }
+    if (i == 9) {
+      contentLoaded = true;
+    }
+
+  }
+
+  if (contentLoaded && buttonArrayDataSelection.length == 0) {
     for (var i = 0; i < 10; i++) {
+        console.log(dataArray[i]);
         buttonArrayDataSelection[i] = new Btn(width/2 - 50,10+(i*55),125,50, dataArray[i]["name"]);
     }
     currentButtons = buttonArrayDataSelection;
