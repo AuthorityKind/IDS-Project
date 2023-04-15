@@ -1,55 +1,43 @@
 // machine learning variables. Taken from example.
-let classifier;
+var classifier;
 const options = { probabilityThreshold: 0.8 };
-let label;
-let confidence;
-let word; // the word that the machine learning algorithm guesses
+var label;
+var confidence;
+var word; // the word that the machine learning algorithm guesses
 
 // our variable for which screen should be drawn. Initialized to the starting screen.
-let currentScreen = "Start";
+var currentScreen = "Start";
 
 // what should be drawn on the screen
-let arrowPosition = 0; // poistion of our arrow
-let choosingPage = false; // if our choosing page box should be drawn
-let goBack = false; // if our choosing to go back box should be drawn
+var arrowPosition = 0; // poistion of our arrow
+var choosingPage = false; // if our choosing page box should be drawn
+var goBack = false; // if our choosing to go back box should be drawn
 
 // api variables
 const api = "https://spapi.dev/api/";
 const dataKeys = ["characters", "episodes", "families", "locations"];
 
-let targetData;
+class Data {
+  constructor(inUrl, inKeys) {
+    this.url = inUrl;
+    this.keys = inKeys;
+    this.content = [];
+  }
+}
 
-let characters;
-let charactersKeys = [
-  "id",
-  "name",
-  "age",
-  "sex",
-  "occupation",
-  "religion",
-  "family",
-];
-
-let locations;
-let locationKeys = ["id", "name"];
-
-let families;
-let familiesKeys = ["id", "name", "characters"];
-
-let episodes;
-let episodeKeys = ["id", "name", "season", "episode", "air_date"];
+var targetData;
 
 // array to store 10 objects at a time, which is the data gotten from loadJSON
-let dataArray = [];
+var dataArray = [];
 
 // button array for start page and dataSelection page
-let buttonArrayStartpage = [];
-let buttonArrayDataSelection = [];
+var buttonArrayStartpage = [];
+var buttonArrayDataSelection = [];
 
-let backButton;
+var backButton;
 
 // the buttons currently in use
-let currentButtons = [];
+var currentButtons = [];
 
 function preload() {
   classifier = ml5.soundClassifier("SpeechCommands18w", options); // taken from example
@@ -67,73 +55,9 @@ function setup() {
   backButton = new Btn(10, 550, 100, 40, "Back");
 }
 
-function setupData() {
-  // create objects to
-  characters = new Data(api + "characters", charactersKeys);
-  locations = new Data(api + "locations", locationKeys);
-  families = new Data(api + "families", familiesKeys);
-  episodes = new Data(api + "episodes", episodeKeys);
-}
-
-function load10(name, index) {
-  dataArray = [];
-  targetData = name;
-  for (var i = index; i <= index + 10; i++) {
-    loadJSON(getDataCollection(targetData).url + "/" + i, function (json) {
-      dataArray.push(json.data);
-    });
-  } loadDataIndex = i; 
-}
-
-/*
-function loadSpecificData(name) {
-  targetData = name;
-  loadJSON(getDataCollection(targetData).url, loadData);
-}
-
-function loadData(json) {
-  const realTotal = Number(json.meta["last_page"]);
-  for (var i = 1; i <= realTotal; i++) {
-    loadJSON(api + targetData + "?page=" + i, function (json) {
-      if (json != null && json != undefined) {
-        for (var i = 0; i < Number(json.meta["per_page"]); i++) {
-          const obj = json.data[i];
-          getDataCollection(targetData).content.push(obj);
-          var count = 0;
-          while (count < 10000) {
-            count++;
-          }
-        }
-      }
-    });
-  }
-}
-*/
-
-function getDataCollection(name) {
-  switch (name) {
-    case "characters":
-      return characters;
-    case "locations":
-      return locations;
-    case "families":
-      return families;
-    case "episodes":
-      return episodes;
-    default:
-      return null;
-  }
-}
-
-let currentIndex = 0;
-
-// counter is to check if a character has already been selected
-let counter = 0;
-
 function draw() {
-  switch (
-    currentScreen // draw the current screen we are on
-  ) {
+  // draw the current screen we are on
+  switch (currentScreen) {
     case "Start":
       startPage();
       break;
@@ -147,18 +71,33 @@ function draw() {
       break;
   }
 
-  for (var i = 0; i < currentButtons.length; i++) {
+  currentButtons.forEach((button) => {
     // draw the current buttons, depends on selected page
-    currentButtons[i].drawButton();
-  }
+    button.drawButton();
+  });
+
   if (currentScreen != "Start") {
     // we do not need a back button on the start page
     backButton.drawButton();
-    drawBackInfo();
+    // info for going back voice commands
+    fill(230);
+    rect(10, 450, 100, 90);
+    fill(0);
+    textSize(15);
+    text("Back function:", 14, 465);
 
+    textSize(13);
+    text('Say "no" to \n go back', 23, 495);
   }
   if (currentScreen == "data_selection") {
-    drawLeftRightInfo();
+    fill(230);
+    rect(115, 450, 150, 90);
+    fill(0);
+    textSize(15);
+    text("Switch page function:", 119, 465);
+
+    textSize(13);
+    text('Say "left" or "right" \nto scroll through \nthe list.', 119, 485);
   }
 
   fill(125);
@@ -185,35 +124,70 @@ function draw() {
   }
 }
 
-function drawBackInfo() {
-  // info for going back voice commands
-  fill(230);
-  rect(10, 450, 100, 90);
-  fill(0);
-  textSize(15);
-  text("Back function:", 14, 465);
+var characters;
+var charactersKeys = [
+  "id",
+  "name",
+  "age",
+  "sex",
+  "occupation",
+  "religion",
+  "family",
+];
 
-  textSize(13);
-  text('Say "no" to \n go back', 23, 495);
+var locations;
+var locationKeys = ["id", "name"];
+
+var families;
+var familiesKeys = ["id", "name", "characters"];
+
+var episodes;
+var episodeKeys = ["id", "name", "season", "episode", "air_date"];
+
+function setupData() {
+  // create objects to
+  characters = new Data(api + "characters", charactersKeys);
+  locations = new Data(api + "locations", locationKeys);
+  families = new Data(api + "families", familiesKeys);
+  episodes = new Data(api + "episodes", episodeKeys);
 }
 
-function drawLeftRightInfo() {
-  fill(230);
-  rect(115, 450, 150, 90);
-  fill(0);
-  textSize(15);
-  text("Switch page function:", 119, 465);
+function load10(name, index) {
+  dataArray = [];
+  targetData = name;
 
-  textSize(13);
-  text("    Say \"left\" or \"right\" \n      to scroll through \n        the list.", 119, 485);
+  for (var i = index; i <= index + 10; i++) {
+    loadJSON(getDataCollection(targetData).url + "/" + i, function (json) {
+      dataArray.push(json.data);
+    });
+  }
+  loadDataIndex = i;
 }
+
+function getDataCollection(name) {
+  switch (name) {
+    case "characters":
+      return characters;
+    case "locations":
+      return locations;
+    case "families":
+      return families;
+    case "episodes":
+      return episodes;
+    default:
+      return null;
+  }
+}
+
+// counter is to check if a character has already been selected
+var counter = 0;
 
 function drawTraits() {
   background(200);
 
-  for (i = 0; i < currentButtons.length; i++) {
-    currentButtons[i].drawButton();
-    if (currentButtons[i].isOn && counter == 0) {
+  currentButtons.forEach((button) => {
+    button.drawButton();
+    if (button.isOn && counter == 0) {
       counter++;
       currentResource = [];
 
@@ -221,10 +195,10 @@ function drawTraits() {
         // if the character somehow is undefined, run the same line until it is not
         currentResource = [];
       }
-    } else if (!currentButtons[i].isOn) {
+    } else if (!button.isOn) {
       counter = 0; // reset button
     }
-  }
+  });
 
   if (word == "up") {
     // to check if up works by changing color, easter egg.
@@ -241,7 +215,7 @@ function drawTraits() {
   counter2 = 0; // counter for the items in the data array
 
   // loop to display the stats of the selected data. dataArray[dataIndex] represents a specific character, episode...
-  for (let key in dataArray[dataIndex]) {
+  for (var key in dataArray[dataIndex]) {
     // the if statement ensures that keys that does not matter to the user are not displayed
     if (
       dataArray[dataIndex] != null &&
@@ -263,7 +237,16 @@ function drawTraits() {
   }
 }
 
-function infoBox() {
+function startPage() {
+  background(200);
+  fill(0);
+  textSize(31);
+  text(
+    "Welcome to our voice activated program.\nYou use your voice exclusively to navigate.",
+    7,
+    25
+  );
+
   fill(230);
   rect(400, 300, 190, 200);
   fill(0);
@@ -276,19 +259,6 @@ function infoBox() {
     405,
     345
   );
-}
-
-function startPage() {
-  background(200);
-  fill(0);
-  textSize(31);
-  text(
-    "Welcome to our voice activated program.\nYou use your voice exclusively to navigate.",
-    7,
-    25
-  );
-
-  infoBox();
 
   if (buttonArrayStartpage.length == 0) {
     var i = 0;
@@ -296,19 +266,6 @@ function startPage() {
     dataKeys.forEach((element) => {
       buttonArrayStartpage.push(new Btn(250, 150 + i++ * 75, 100, 40, element));
     });
-
-    /*
-    buttonArrayStartpage.push(
-      new Btn(250, 150 + i++ * 75, 100, 40, "Episodes")
-    );
-    buttonArrayStartpage.push(
-      new Btn(250, 150 + i++ * 75, 100, 40, "Families")
-    );
-    buttonArrayStartpage.push(
-      new Btn(250, 150 + i++ * 75, 100, 40, "Locations")
-    );
-    currentButtons = buttonArrayStartpage;
-    */
   }
 
   if (currentButtons.length == 0) {
@@ -331,11 +288,11 @@ function gotResult(error, results) {
   moveArrow(word);
 }
 
-let timer; // timer to ensure that we do not use the same word too quickly
-let dataSelectionIndex; // index for dataSelection data
-let dataIndex; // index for the data page 
-
-let loadDataIndex = 1;
+var timer; // timer to ensure that we do not use the same word too quickly
+var dataSelectionIndex; // index for dataSelection data
+var dataIndex; // index for the data page
+var currentIndex = 0;
+var loadDataIndex = 1;
 
 function moveArrow(newWord) {
   if (newWord == word && timer + 1000 > millis()) {
@@ -364,8 +321,7 @@ function moveArrow(newWord) {
         currentIndex = dataSelectionIndex;
 
         dataArray = []; // reset data array so we can load new data
-        load10(dataKeys[currentIndex], loadDataIndex, function(dataArray) {
-        });
+        load10(dataKeys[currentIndex], loadDataIndex, function (_dataArray) {});
         changeScreen("data_selection");
         buttonArrayDataSelection = []; // reset buttons to make new buttons with the new data
       } else if (currentScreen == "data_selection") {
@@ -385,20 +341,20 @@ function moveArrow(newWord) {
   if (word == "right") {
     buttonArrayDataSelection = []; // reset buttons to make new buttons with the new data
     dataArray = []; // reset data array so we can load new data
-        load10(dataKeys[dataSelectionIndex], loadDataIndex, function(dataArray) {
-        });
+    load10(dataKeys[dataSelectionIndex], loadDataIndex, function () {});
   } else if (word == "left" && loadDataIndex != 1) {
-    if (loadDataIndex - 22 < 1){
+    if (loadDataIndex - 22 < 1) {
       return;
     }
     loadDataIndex -= 22; // to go back find index for the last
     buttonArrayDataSelection = []; // reset buttons to make new buttons with the new data
     dataArray = []; // reset data array so we can load new data
-        load10(dataKeys[dataSelectionIndex], loadDataIndex, function(dataArray) {
-        });
+    load10(
+      dataKeys[dataSelectionIndex],
+      loadDataIndex,
+      function (_dataArray) {}
+    );
   }
-
-  // the last two if statements needs to be at the top, because we dont want to run the rest of the code if we go into them
 
   // the last two if statements needs to be at the top, because we dont want to run the rest of the code if we go into them
 
@@ -467,11 +423,12 @@ function moveArrow(newWord) {
 }
 
 function changeScreen(newScreen) {
-
-  if (newScreen == "last") { // go back
-    if (currentScreen == "data_selection") { // if on data selection
-      currentScreen = "Start";  // go back to start
-      loadDataIndex = 1; // reset index for loading data. 
+  if (newScreen == "last") {
+    // go back
+    if (currentScreen == "data_selection") {
+      // if on data selection
+      currentScreen = "Start"; // go back to start
+      loadDataIndex = 1; // reset index for loading data.
     } else {
       currentScreen = "data_selection"; // else if on data page, go back to data selection
     }
@@ -480,13 +437,9 @@ function changeScreen(newScreen) {
     currentScreen = newScreen;
   }
 
-
-
-
   // reset variables
   goBack = false;
   choosingPage = false;
-
 
   arrowPosition = 0;
   currentButtons = [];
@@ -499,8 +452,8 @@ function updateArrowPosition(number) {
   }
 }
 
-let contentLoaded = false;
-let btnWidth;
+var contentLoaded = false;
+var btnWidth;
 
 function dataSelectionPage() {
   background(220);
@@ -556,8 +509,8 @@ function drawArrow() {
     // draw arrow for buttons
 
     // we want to draw the arrow to the left of the button it is at. Roughly in the middle
-    let xPositionArrow = currentButtons[arrowPosition].getXPosition() - 40;
-    let yPositionArrow =
+    var xPositionArrow = currentButtons[arrowPosition].getXPosition() - 40;
+    var yPositionArrow =
       currentButtons[arrowPosition].getYPosition() +
       currentButtons[arrowPosition].getHeight() -
       13;
@@ -573,6 +526,7 @@ function drawArrow() {
 function drawIndexes() {
   // same as function above but for indexes
   textSize(25);
+  
   for (var i = 0; i < currentButtons.length; i++) {
     var xPosition =
       currentButtons[i].getXPosition() + currentButtons[i].getWidth() + 10;
