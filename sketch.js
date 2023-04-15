@@ -428,39 +428,6 @@ function moveArrow(newWord) {
       break;
   }
 
-  /*
-  if (word == "zero") {
-    updateArrowPosition(0);
-
-  } else if (word == "one") {
-    updateArrowPosition(1);
-
-  } else if (word == "two") {
-    updateArrowPosition(2);
-
-  } else if (word == "three") {
-    updateArrowPosition(3);
-
-  } else if (word == "four") {
-    updateArrowPosition(4);
-
-  } else if (word == "five") {
-    updateArrowPosition(5);
-
-  } else if (word == "six") {
-    updateArrowPosition(6);
-
-  } else if (word == "seven") {
-    updateArrowPosition(7);
-
-  } else if (word == "eight") {
-    updateArrowPosition(8);
-
-  } else if (word == "nine") {
-    updateArrowPosition(9);
-  }
-*/
-
   word = null;
 }
 
