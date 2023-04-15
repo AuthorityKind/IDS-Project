@@ -1,21 +1,22 @@
 // machine learning variables. Taken from example.
-
 let classifier;
 const options = { probabilityThreshold: 0.80 };
 let label;
 let confidence;
+let word; // the word that the machine learning algorithm guesses
+
+// our variable for which screen should be drawn. Initialized to the starting screen.
 let currentScreen = "Start";
 
-let word;
-let arrowPosition = 0;
-let wordCount = 0;
-
-let choosingPage = false;
-let goBack = false;
+// what should be drawn on the screen
+let arrowPosition = 0; // poistion of our arrow
+let choosingPage = false; // if our choosing page box should be drawn
+let goBack = false; // if our choosing to go back box should be drawn
 
 // api variables
 const api = "https://spapi.dev/api/";
 const dataKeys = ["characters","episodes", "families", "locations"];
+
 let targetData;
 
 let characters;
@@ -39,28 +40,19 @@ let episodes;
 let episodeKeys = ["id", "name", "season", "episode", "air_date"];
 
 
+// array to store 10 objects at a time, which is the data gotten from loadJSON
+let dataArray = []; 
 
-let dataArray = [];
 
 
-// button array
-let buttonArrayStart = [];
+// button array for start page and dataSelection page 
 let buttonArrayStartpage = [];
+let buttonArrayDataSelection = []; 
 
-let generalButtons = [];
-let upButton;
-let downButton;
 let backButton;
 
-let buttonArrayDataSelection = [];
-let buttonArrayCharacters = [];
-let buttonArrayEpisodes = [];
-let buttonArrayFamilies = [];
-let buttonArrayLocations = [];
-
+// the buttons currently in use
 let currentButtons = [];
-let lastScreen;
-
 
 function preload() {
   classifier = ml5.soundClassifier('SpeechCommands18w', options); // taken from example
@@ -75,24 +67,13 @@ function setup() {
   label = createDiv('Label: ...'); // taken from example
   confidence = createDiv('Confidence: ...'); // taken from example
   classifier.classify(gotResult); // taken from example
-  let i = 0;
-
-  buttonArrayStart.push(new Btn(60 + (i * 75), 10, 70, 25, i));
-
-
-
-  upButton = new Btn(10, 225, 100, 40, "Up");
-  downButton = new Btn(10, 275, 100, 40, "Down");
 
   backButton = new Btn(10, 550, 100, 40, "Back");
 
 
-  generalButtons.push(upButton);
-  generalButtons.push(downButton);
-  generalButtons.push(backButton);
 }
 
-function setupData() {
+function setupData() { // create objects to
   characters = new Data(api + "characters", charactersKeys);
   locations = new Data(api + "locations", locationKeys);
   families = new Data(api + "families", familiesKeys);
@@ -158,7 +139,7 @@ let currentIndex = 0;
 let counter = 0;
 
 function draw() {
-  switch (currentScreen) {
+  switch (currentScreen) { // draw the current screen we are on
     case "Start":
       startPage();
       break;
@@ -173,29 +154,21 @@ function draw() {
   }
 
 
-  for(var i = 0; i < currentButtons.length; i++) {
+  for(var i = 0; i < currentButtons.length; i++) { // draw the current buttons, depends on selected page
     currentButtons[i].drawButton();
   }
-
-  for(var i = 0; i < generalButtons.length; i++) { // draw up and down button
-    generalButtons[i].drawButton();
+  if (currentScreen != "Start") { // we do not need a back button on the start page
+    backButton.drawButton();
+    drawBackInfo();
   }
 
-  if (upButton.isPressed) { // logic for up button
-    moveArrow("up");
-  }
-
-  if (downButton.isPressed) { // logic for down button
-    moveArrow("down");
-  } 
 
   fill(125);
-
   drawIndexes();
-
   drawArrow();
 
-  if (choosingPage) {
+
+  if (choosingPage) { // message if the user wants to proceed to next page or stay
     fill(250,0,0);
     rect(150, 250, 300, 100);
     fill(0);
@@ -204,7 +177,7 @@ function draw() {
     text("Say \"yes\" to enter, \"no\" to reselect", 155, 315);
   
   }
-  if (goBack) {
+  if (goBack) { // message if the user wants to proceed to go back or stay
     fill(250,0,0);
     rect(150, 250, 300, 100);
     fill(0);
@@ -212,6 +185,18 @@ function draw() {
     text("Do you want to go back?", 155, 285);
     text("Say \"yes\" to enter, \"no\" to stay", 155, 315);
   }
+}
+
+function drawBackInfo() { // info for going back voice commands 
+  fill(230);
+  rect(10, 450, 100, 90);
+  fill(0);
+  textSize(15);
+  text("Back function:", 14, 465);
+
+  textSize(13);
+  text("Say \"no\" to \n go back", 23, 495);
+
 }
 
 function drawTraits() {
@@ -234,48 +219,51 @@ function drawTraits() {
     
   }
 
-  if (word == "up") {
+  if (word == "up") { // to check if up works by changing color, easter egg.
     fill(255, 160, 90);
   } else {
     fill(100,255,167);
   }
+  
   rect(125, 100, 400, 400);
   textSize(20);
   fill(0);
   text("Traits: ", 200, 120);
 
-  counter2 = 0; // counter for the items in the current resource
+  counter2 = 0; // counter for the items in the data array
+
+  // loop to display the stats of the selected data. dataArray[dataIndex] represents a specific character, episode...
     for (let key in dataArray[dataIndex]) {
+      // the if statement ensures that keys that does not matter to the user are not displayed
       if (dataArray[dataIndex] != null && dataArray[dataIndex][key] != null 
-        && key != "updated_at" && key != "created_at" && key != "url" && key != "family "&& key != "episodes") {
-        text(key + ":", 130, 100 + (70 + (counter2 * 40))); 
-        text(dataArray[dataIndex][key], 250, 100 + (70 + (counter2 * 40))); 
-        counter2++;
+        && key != "updated_at" && key != "created_at" && key != "url" && key != "family" && key != "episodes" && key != "characters") {
+        text(key + ":", 130, 100 + (70 + (counter2 * 40))); // display items
+        var display = dataArray[dataIndex][key];
+        if (key == "relatives") {
+          display = dataArray[dataIndex][key].length;
+        }
+        text(display, 250, 100 + (70 + (counter2++ * 40))); // increment counter in the last one. 
       }
     }
-  
-
-
-
 }
 
 
 function infoBox() {
   fill(230);
-  rect(400, 300, 190, 250);
+  rect(400, 300, 190, 200);
   fill(0);
   textSize(20);
   text("Info: how to use", 405, 325);
 
   textSize(15);
-  text("In order to navigate through\nthe site; say \"up\" to move\nthe arrow one button up,\n\"down\" to move it one down.\nOr you can specify which\nbutton you want to use by\nsaying its number.\nThe numbering starts at 0.\nIf everything fails,\nthen there are buttons to\nhelp do the navigatation.", 405, 345);
+  text("In order to navigate through\nthe site; say \"up\" to move\nthe arrow one button up,\n\"down\" to move it one down.\nOr you can specify which\nbutton you want to use by\nsaying its number.", 405, 345);
 }
 
 function startPage() {
   background(200);
   fill(0);
-  textSize(32);
-  text("Welcome to our voice activated program.\nYou can use your voice to navigate.", 10, 25);
+  textSize(31);
+  text("Welcome to our voice activated program.\nYou use your voice exclusively to navigate.", 7, 25);
   
   infoBox();
   
@@ -307,31 +295,29 @@ function gotResult(error, results) { // from example
   moveArrow(word); 
 }
 
-let timer;
-let dataSelectionIndex;
-let dataIndex;
-let specificContent = [];
+let timer; // timer to ensure that we do not use the same word too quickly
+let dataSelectionIndex; // index for dataSelection data
+let dataIndex; // index for the data page 
 
-let resourceData = [];
 
 function moveArrow(newWord) {
-
+   
   if (newWord == word && timer + 1000 > millis()) {
-    return;
+    return; // return if same word within 1000 ms 
   }
   timer = millis();
 
 
 
   // choosing to go back or not
-  if (goBack) {
-    if (word == "yes") {
-        changeScreen("last");
+  if (goBack) { 
+    if (word == "yes") { // if we want to go back
+        changeScreen("last"); 
         goBack = false;
-    } else if (word == "no") {
+    } else if (word == "no") { // if we want to stay
         goBack = false;
     }
-    return;
+    return; // we do not want to execute further. Only yes or no when selecting to go back or not. 
   }
 
 
@@ -343,11 +329,11 @@ function moveArrow(newWord) {
         dataSelectionIndex = arrowPosition;
         currentIndex = dataSelectionIndex;
 
-        dataArray = [];
+        dataArray = []; // reset data array so we can load new data
         load10(dataKeys[currentIndex], function(dataArray) {
         });
         changeScreen("data_selection");
-        buttonArrayDataSelection = [];
+        buttonArrayDataSelection = []; // reset buttons to make new buttons with the new data
         
       } else if (currentScreen == "data_selection") {
         buttonArrayDataSelection = [];
@@ -360,14 +346,14 @@ function moveArrow(newWord) {
   } else if (word == "no"){
   choosingPage = false;
   }
-  return;
+  return; // we do not want to execute further. Only yes or no when selecting a page. 
 }
 
-// the last two if statements needs to be at the top, because we dont want to run the rest of the code if we go into them
+  // the last two if statements needs to be at the top, because we dont want to run the rest of the code if we go into them
 
 
   // go commands
-  if (word == "go") {
+  if (word == "go" && currentScreen != "data_page") { // cannot go further if we are on the data page
     choosingPage = true;
   } 
 
@@ -388,13 +374,14 @@ function moveArrow(newWord) {
   } 
 
   // prompt to go back to last screen
-  if (word == "no" && currentScreen != "start_page") {
+  if (word == "no" && currentScreen != "start_page") { // cannot go back on the starting page
     goBack = true;
   }
 
   // navigation commands, numbers
   if (word == "zero") {
     updateArrowPosition(0);
+
   } else if (word == "one") {
     updateArrowPosition(1);
 
@@ -429,16 +416,16 @@ function moveArrow(newWord) {
 
 function changeScreen(newScreen) {
 
-  if (newScreen == "last") {
-    if (currentScreen == "data_selection") {
-      currentScreen = "Start";
+  if (newScreen == "last") { // go back
+    if (currentScreen == "data_selection") { // if on data selection
+      currentScreen = "Start";  // go back to start
     } else {
-      currentScreen = "data_selection";
+      currentScreen = "data_selection"; // else if on data page, go back to data selection
     }
-  } else {
+  } else { // go forward to the next screen, specified by the parameter "newScreen"
     currentScreen = newScreen;
   }
-
+  // reset variables
   goBack = false;
   choosingPage = false;
 
@@ -447,37 +434,17 @@ function changeScreen(newScreen) {
 
 }
 
-
-
-function findData() {
-  loadSpecificData(dataKeys[arrowPosition]);
-  content = getDataCollection(dataKeys[arrowPosition]);
-  return content.content;
-}
-
 function updateArrowPosition(number) {
 
-  if (number < currentButtons.length) {
+  if (number < currentButtons.length) { // update arrow position if that index is available
     arrowPosition = number;
   }
+
 }
 
-function drawArrow() {
-  if (typeof currentButtons[arrowPosition] != 'undefined' && arrowPosition < currentButtons.length) { // draw arrow for buttons
 
-    let xPositionArrow = currentButtons[arrowPosition].getXPosition() + currentButtons[arrowPosition].getWidth() + 31;
-    let yPositionArrow = currentButtons[arrowPosition].getYPosition() + currentButtons[arrowPosition].getHeight() - 19;
-  
-    fill(0);
-    textSize(25);
-    text("<", xPositionArrow, yPositionArrow);
-
-    text("arrow pos: " + arrowPosition, 50, 400);
-  }
-}
-
-let content;
 let contentLoaded = false;
+let btnWidth;
 
 function dataSelectionPage() {
   background(220);
@@ -493,29 +460,51 @@ function dataSelectionPage() {
       contentLoaded = false;
       break;
     }
-    if (i == 9) {
+    if (i == 9) { // only set contentLoaded to true if every object has been loaded into the array
       contentLoaded = true;
     }
 
   }
 
-  if (contentLoaded && buttonArrayDataSelection.length == 0) {
-    for (var i = 0; i < 10; i++) {
-        console.log(dataArray[i]);
-        buttonArrayDataSelection[i] = new Btn(width/2 - 50,10+(i*55),125,50, dataArray[i]["name"]);
+  if (contentLoaded && buttonArrayDataSelection.length == 0) { // if data has been loaded and there has not been made buttons yet 
+    if (dataKeys[dataSelectionIndex] == "locations" || dataKeys[dataSelectionIndex] == "episodes") {
+      btnWidth = 225; 
+    } else {
+      btnWidth = 125;
     }
-    currentButtons = buttonArrayDataSelection;
-  } 
+    for (var i = 0; i < 10; i++) { 
+        buttonArrayDataSelection[i] = new Btn(width/2, 10+(i*55), btnWidth, 50, dataArray[i]["name"]); // create button for that data
+    }
+    currentButtons = buttonArrayDataSelection; // set buttons
+  } else if (!contentLoaded) { // if data has not been loaded
+    textSize(100); // big
+    fill(Math.random()*255, Math.random()*255, Math.random()*255, );
+    text("LOADING\nDATA", 10, 150); // loading message on screen
+  }
 
 }
 
+function drawArrow() {
+  if (typeof currentButtons[arrowPosition] != 'undefined' && arrowPosition < currentButtons.length) { // draw arrow for buttons
+
+    // we want to draw the arrow to the left of the button it is at. Roughly in the middle
+    let xPositionArrow = currentButtons[arrowPosition].getXPosition() - 40; 
+    let yPositionArrow = currentButtons[arrowPosition].getYPosition() + currentButtons[arrowPosition].getHeight() - 13;
+  
+    fill(0);
+    textSize(25);
+    text(">", xPositionArrow, yPositionArrow);
+
+    text("arrow pos: " + arrowPosition, 50, 400); //  debug tool and help to identify where the arrow is located
+  }
+}
+
 function drawIndexes() {
-
+  // same as function above but for indexes
   textSize(25);
-
   for (var i = 0; i < currentButtons.length; i++) {
 
-    var xPosition = currentButtons[i].getXPosition() + currentButtons[i].getWidth() + 10;
+    var xPosition = currentButtons[i].getXPosition() - 23;
     var yPosition = currentButtons[i].getYPosition() + currentButtons[i].getHeight()/1.5;
 
     text(i, xPosition, yPosition);    
