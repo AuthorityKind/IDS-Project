@@ -75,15 +75,14 @@ function setupData() {
   episodes = new Data(api + "episodes", episodeKeys);
 }
 
-function load10(name) {
+function load10(name, index) {
   dataArray = [];
   targetData = name;
-
-  for (var i = 1; i <= 10; i++) {
+  for (var i = index; i <= index + 10; i++) {
     loadJSON(getDataCollection(targetData).url + "/" + i, function (json) {
       dataArray.push(json.data);
     });
-  }
+  } loadDataIndex = i; 
 }
 
 function loadSpecificData(name) {
@@ -156,6 +155,10 @@ function draw() {
     // we do not need a back button on the start page
     backButton.drawButton();
     drawBackInfo();
+
+  }
+  if (currentScreen == "data_selection") {
+    drawLeftRightInfo();
   }
 
   fill(125);
@@ -192,6 +195,17 @@ function drawBackInfo() {
 
   textSize(13);
   text('Say "no" to \n go back', 23, 495);
+}
+
+function drawLeftRightInfo() {
+  fill(230);
+  rect(115, 450, 150, 90);
+  fill(0);
+  textSize(15);
+  text("Switch page function:", 119, 465);
+
+  textSize(13);
+  text("    Say \"left\" or \"right\" \n      to scroll through \n        the list.", 119, 485);
 }
 
 function drawTraits() {
@@ -315,7 +329,9 @@ function gotResult(error, results) {
 
 let timer; // timer to ensure that we do not use the same word too quickly
 let dataSelectionIndex; // index for dataSelection data
-let dataIndex; // index for the data page
+let dataIndex; // index for the data page 
+
+let loadDataIndex = 1;
 
 function moveArrow(newWord) {
   if (newWord == word && timer + 1000 > millis()) {
@@ -339,13 +355,13 @@ function moveArrow(newWord) {
   // if we are choosing a specific page
   if (choosingPage) {
     if (word == "yes") {
-      console.log(currentScreen);
       if (currentScreen == "Start") {
         dataSelectionIndex = arrowPosition;
         currentIndex = dataSelectionIndex;
 
         dataArray = []; // reset data array so we can load new data
-        load10(dataKeys[currentIndex], function (dataArray) {});
+        load10(dataKeys[currentIndex], loadDataIndex, function(dataArray) {
+        });
         changeScreen("data_selection");
         buttonArrayDataSelection = []; // reset buttons to make new buttons with the new data
       } else if (currentScreen == "data_selection") {
@@ -361,6 +377,22 @@ function moveArrow(newWord) {
     return;
   }
   // we do not want to execute further. Only yes or no when selecting a page.
+
+  if (word == "right") {
+    buttonArrayDataSelection = []; // reset buttons to make new buttons with the new data
+    dataArray = []; // reset data array so we can load new data
+        load10(dataKeys[dataSelectionIndex], loadDataIndex, function(dataArray) {
+        });
+  } else if (word == "left" && loadDataIndex != 1) {
+    if (loadDataIndex - 22 < 1){
+      return;
+    }
+    loadDataIndex -= 22; // to go back find index for the last
+    buttonArrayDataSelection = []; // reset buttons to make new buttons with the new data
+    dataArray = []; // reset data array so we can load new data
+        load10(dataKeys[dataSelectionIndex], loadDataIndex, function(dataArray) {
+        });
+  }
 
   // the last two if statements needs to be at the top, because we dont want to run the rest of the code if we go into them
 
@@ -432,11 +464,11 @@ function moveArrow(newWord) {
 }
 
 function changeScreen(newScreen) {
-  if (newScreen == "last") {
-    // go back
-    if (currentScreen == "data_selection") {
-      // if on data selection
-      currentScreen = "Start"; // go back to start
+
+  if (newScreen == "last") { // go back
+    if (currentScreen == "data_selection") { // if on data selection
+      currentScreen = "Start";  // go back to start
+      loadDataIndex = 1; // reset index for loading data. 
     } else {
       currentScreen = "data_selection"; // else if on data page, go back to data selection
     }
@@ -444,9 +476,14 @@ function changeScreen(newScreen) {
     // go forward to the next screen, specified by the parameter "newScreen"
     currentScreen = newScreen;
   }
+
+
+
+
   // reset variables
   goBack = false;
   choosingPage = false;
+
 
   arrowPosition = 0;
   currentButtons = [];
