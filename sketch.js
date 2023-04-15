@@ -79,13 +79,14 @@ function load10(name) {
   dataArray = [];
   targetData = name;
 
-  for (var i = 1; i <= 10; i++) {
+  for (let i = 1; i <= 10; i++) {
     loadJSON(getDataCollection(targetData).url + "/" + i, function (json) {
       dataArray.push(json.data);
     });
   }
 }
 
+/*
 function loadSpecificData(name) {
   targetData = name;
   loadJSON(getDataCollection(targetData).url, loadData);
@@ -94,22 +95,21 @@ function loadSpecificData(name) {
 function loadData(json) {
   const realTotal = Number(json.meta["last_page"]);
   for (var i = 1; i <= realTotal; i++) {
-    loadJSON(api + targetData + "?page=" + i, loadDataCluster);
-  }
-}
-
-function loadDataCluster(json) {
-  if (json != null && json != undefined) {
-    for (var i = 0; i < Number(json.meta["per_page"]); i++) {
-      const obj = json.data[i];
-      getDataCollection(targetData).content.push(obj);
-      var count = 0;
-      while (count < 10000) {
-        count++;
+    loadJSON(api + targetData + "?page=" + i, function (json) {
+      if (json != null && json != undefined) {
+        for (var i = 0; i < Number(json.meta["per_page"]); i++) {
+          const obj = json.data[i];
+          getDataCollection(targetData).content.push(obj);
+          var count = 0;
+          while (count < 10000) {
+            count++;
+          }
+        }
       }
-    }
+    });
   }
 }
+*/
 
 function getDataCollection(name) {
   switch (name) {
@@ -278,9 +278,12 @@ function startPage() {
 
   if (buttonArrayStartpage.length == 0) {
     var i = 0;
-    buttonArrayStartpage.push(
-      new Btn(250, 150 + i++ * 75, 100, 40, "Characters")
-    );
+
+    dataKeys.forEach((element) => {
+      buttonArrayStartpage.push(new Btn(250, 150 + i++ * 75, 100, 40, element));
+    });
+
+    /*
     buttonArrayStartpage.push(
       new Btn(250, 150 + i++ * 75, 100, 40, "Episodes")
     );
@@ -291,6 +294,7 @@ function startPage() {
       new Btn(250, 150 + i++ * 75, 100, 40, "Locations")
     );
     currentButtons = buttonArrayStartpage;
+    */
   }
 
   if (currentButtons.length == 0) {
@@ -394,7 +398,6 @@ function moveArrow(newWord) {
   }
 
   // navigation commands, numbers
-
   switch (word) {
     case "zero":
       updateArrowPosition(0);
