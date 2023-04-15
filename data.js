@@ -10,8 +10,14 @@ class Data {
     this.content = arr;
   }
 
-  getContent(i) {
-    return this.content[i];
+  getContent(i, val) {
+    /*
+    this.keys.forEach(key => {
+      if (this.content[i][key] === val){
+        return this.content[i][key]
+      }
+    });
+    */
   }
 
   printContent(i) {
