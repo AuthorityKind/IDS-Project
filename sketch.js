@@ -5,39 +5,9 @@ var label;
 var confidence;
 var word; // the word that the machine learning algorithm guesses
 
-// our variable for which screen should be drawn. Initialized to the starting screen.
-var currentScreen = "Start";
-
-// what should be drawn on the screen
-var arrowPosition = 0; // poistion of our arrow
-var choosingPage = false; // if our choosing page box should be drawn
-var goBack = false; // if our choosing to go back box should be drawn
-
-// api variables
-const api = "https://spapi.dev/api/";
-const dataKeys = ["characters", "episodes", "families", "locations"];
-
-class Data {
-  constructor(inUrl, inKeys) {
-    this.url = inUrl;
-    this.keys = inKeys;
-    this.content = [];
-  }
-}
-
-var targetData;
-
-// array to store 10 objects at a time, which is the data gotten from loadJSON
-var dataArray = [];
-
-// button array for start page and dataSelection page
-var buttonArrayStartpage = [];
-var buttonArrayDataSelection = [];
-
-var backButton;
-
 // the buttons currently in use
 var currentButtons = [];
+var backButton;
 
 function preload() {
   classifier = ml5.soundClassifier("SpeechCommands18w", options); // taken from example
@@ -49,11 +19,31 @@ function setup() {
   setupData();
 
   label = createDiv("Label: ..."); // taken from example
-  confidence = createDiv("Confidence: ..."); // taken from example
-  classifier.classify(gotResult); // taken from example
+  confidence = createDiv("Confidence: ...");
+  classifier.classify(function (error, results) {
+    // A function to run when we get any errors and the results
+    // from example
+    // Display error in the console
+    if (error) {
+      console.error(error);
+    }
+    // The results are in an array ordered by confidence.
+    // Show the first label and confidence
+    label.html("Label: " + results[0].label);
+    confidence.html("Confidence: " + nf(results[0].confidence, 0, 2)); // Round the confidence to 0.01
+    word = results[0].label;
+    moveArrow(word);
+  });
 
   backButton = new Btn(10, 550, 100, 40, "Back");
 }
+
+// our variable for which screen should be drawn. Initialized to the starting screen.
+var currentScreen = "Start";
+
+// what should be drawn on the screen
+var goBack = false; // if our choosing to go back box should be drawn
+var choosingPage = false; // if our choosing page box should be drawn
 
 function draw() {
   // draw the current screen we are on
@@ -61,11 +51,9 @@ function draw() {
     case "Start":
       startPage();
       break;
-
     case "data_page":
       drawTraits();
       break;
-
     case "data_selection":
       dataSelectionPage();
       break;
@@ -124,6 +112,18 @@ function draw() {
   }
 }
 
+// array to store 10 objects at a time, which is the data gotten from loadJSON
+var dataArray = [];
+
+class Data {
+  constructor(inUrl, inKeys) {
+    this.url = inUrl;
+    this.keys = inKeys;
+    this.content = [];
+  }
+}
+
+//variable declaration to get and hold data from API
 var characters;
 var charactersKeys = [
   "id",
@@ -144,15 +144,17 @@ var familiesKeys = ["id", "name", "characters"];
 var episodes;
 var episodeKeys = ["id", "name", "season", "episode", "air_date"];
 
+var targetData;
+
 function setupData() {
-  // create objects to
+  // create objects to hold data from API
   characters = new Data(api + "characters", charactersKeys);
   locations = new Data(api + "locations", locationKeys);
   families = new Data(api + "families", familiesKeys);
   episodes = new Data(api + "episodes", episodeKeys);
 }
 
-function load10(name, index) {
+function loadEntries(name, index) {
   dataArray = [];
   targetData = name;
 
@@ -237,10 +239,13 @@ function drawTraits() {
   }
 }
 
+// button array for start page and dataSelection page
+var buttonArrayStartpage = [];
+
 function startPage() {
   background(200);
   fill(0);
-  textSize(31);
+  textSize(28);
   text(
     "Welcome to our voice activated program.\nYou use your voice exclusively to navigate.",
     7,
@@ -250,10 +255,10 @@ function startPage() {
   fill(230);
   rect(400, 300, 190, 200);
   fill(0);
-  textSize(20);
+  textSize(19);
   text("Info: how to use", 405, 325);
 
-  textSize(15);
+  textSize(13);
   text(
     'In order to navigate through\nthe site; say "up" to move\nthe arrow one button up,\n"down" to move it one down.\nOr you can specify which\nbutton you want to use by\nsaying its number.',
     405,
@@ -273,26 +278,14 @@ function startPage() {
   }
 }
 
-// A function to run when we get any errors and the results
-function gotResult(error, results) {
-  // from example
-  // Display error in the console
-  if (error) {
-    console.error(error);
-  }
-  // The results are in an array ordered by confidence.
-  // Show the first label and confidence
-  label.html("Label: " + results[0].label);
-  confidence.html("Confidence: " + nf(results[0].confidence, 0, 2)); // Round the confidence to 0.01
-  word = results[0].label;
-  moveArrow(word);
-}
-
 var timer; // timer to ensure that we do not use the same word too quickly
 var dataSelectionIndex; // index for dataSelection data
 var dataIndex; // index for the data page
 var currentIndex = 0;
 var loadDataIndex = 1;
+const numEntries = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
+
+var buttonArrayDataSelection = [];
 
 function moveArrow(newWord) {
   if (newWord == word && timer + 1000 > millis()) {
@@ -321,7 +314,7 @@ function moveArrow(newWord) {
         currentIndex = dataSelectionIndex;
 
         dataArray = []; // reset data array so we can load new data
-        load10(dataKeys[currentIndex], loadDataIndex, function (_dataArray) {});
+        loadEntries(dataKeys[currentIndex], loadDataIndex, function (_dataArray) { }); //underscored parameters to indicate that they aren't important
         changeScreen("data_selection");
         buttonArrayDataSelection = []; // reset buttons to make new buttons with the new data
       } else if (currentScreen == "data_selection") {
@@ -341,7 +334,7 @@ function moveArrow(newWord) {
   if (word == "right") {
     buttonArrayDataSelection = []; // reset buttons to make new buttons with the new data
     dataArray = []; // reset data array so we can load new data
-    load10(dataKeys[dataSelectionIndex], loadDataIndex, function () {});
+    loadEntries(dataKeys[dataSelectionIndex], loadDataIndex, function () { });
   } else if (word == "left" && loadDataIndex != 1) {
     if (loadDataIndex - 22 < 1) {
       return;
@@ -349,10 +342,10 @@ function moveArrow(newWord) {
     loadDataIndex -= 22; // to go back find index for the last
     buttonArrayDataSelection = []; // reset buttons to make new buttons with the new data
     dataArray = []; // reset data array so we can load new data
-    load10(
+    loadEntries(
       dataKeys[dataSelectionIndex],
       loadDataIndex,
-      function (_dataArray) {}
+      function (_dataArray) { }
     );
   }
 
@@ -386,39 +379,12 @@ function moveArrow(newWord) {
   }
 
   // navigation commands, numbers
-  switch (word) {
-    case "zero":
-      updateArrowPosition(0);
+  for (var i = 0; i < numEntries.length; i++) {
+    if (numEntries[i] == word) {
+      updateArrowPosition(i);
       break;
-    case "one":
-      updateArrowPosition(1);
-      break;
-    case "two":
-      updateArrowPosition(2);
-      break;
-    case "three":
-      updateArrowPosition(3);
-      break;
-    case "four":
-      updateArrowPosition(4);
-      break;
-    case "five":
-      updateArrowPosition(5);
-      break;
-    case "six":
-      updateArrowPosition(6);
-      break;
-    case "seven":
-      updateArrowPosition(7);
-      break;
-    case "eight":
-      updateArrowPosition(8);
-      break;
-    case "nine":
-      updateArrowPosition(9);
-      break;
+    }
   }
-
   word = null;
 }
 
@@ -507,7 +473,6 @@ function drawArrow() {
     arrowPosition < currentButtons.length
   ) {
     // draw arrow for buttons
-
     // we want to draw the arrow to the left of the button it is at. Roughly in the middle
     var xPositionArrow = currentButtons[arrowPosition].getXPosition() - 40;
     var yPositionArrow =
@@ -526,7 +491,7 @@ function drawArrow() {
 function drawIndexes() {
   // same as function above but for indexes
   textSize(25);
-  
+
   for (var i = 0; i < currentButtons.length; i++) {
     var xPosition =
       currentButtons[i].getXPosition() + currentButtons[i].getWidth() + 10;
