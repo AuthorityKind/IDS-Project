@@ -1,5 +1,6 @@
-// machine learning variables. Taken from example.
-var classifier;
+// machine learning variables. Taken from Mads Hobye's example.
+// we're using the ml5js library for machine learning, 
+var classifier; // will be used for this function; https://learn.ml5js.org/#/reference/sound-classifier
 const options = { probabilityThreshold: 0.8 };
 var label;
 var confidence;
@@ -10,7 +11,7 @@ var currentButtons = [];
 var backButton;
 
 function preload() {
-  classifier = ml5.soundClassifier("SpeechCommands18w", options); // taken from example
+  classifier = ml5.soundClassifier("SpeechCommands18w", options); // Taken from Mads Hobye's example
 }
 
 function setup() {
@@ -18,7 +19,7 @@ function setup() {
 
   setupData();
 
-  label = createDiv("Label: ..."); // taken from example
+  label = createDiv("Label: ..."); // Taken from Mads Hobye's example
   confidence = createDiv("Confidence: ...");
   classifier.classify(function (error, results) {
     // A function to run when we get any errors and the results
@@ -114,6 +115,8 @@ function draw() {
 
 // array to store 10 objects at a time, which is the data gotten from loadJSON
 var dataArray = [];
+
+const api = "https://spapi.dev/api/";
 
 class Data {
   constructor(inUrl, inKeys) {
@@ -227,6 +230,9 @@ function drawTraits() {
       key != "url" &&
       key != "family" &&
       key != "episodes" &&
+      key != "wiki_url" &&
+      key != "thumbnail_url" &&
+      key != "locations" &&
       key != "characters"
     ) {
       text(key + ":", 130, 100 + (70 + counter2 * 40)); // display items
@@ -241,6 +247,7 @@ function drawTraits() {
 
 // button array for start page and dataSelection page
 var buttonArrayStartpage = [];
+const dataKeys = ["characters", "episodes", "families", "locations"]; 
 
 function startPage() {
   background(200);
@@ -283,6 +290,7 @@ var dataSelectionIndex; // index for dataSelection data
 var dataIndex; // index for the data page
 var currentIndex = 0;
 var loadDataIndex = 1;
+var arrowPosition = 0; // poistion of our arrow
 const numEntries = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
 
 var buttonArrayDataSelection = [];
